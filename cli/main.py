@@ -4,6 +4,14 @@ import updater
 
 @click.group()
 def cli():
+    """Systematic search of all known anti-phage systems by MDM Labs, Paris.
+
+    After first install you need to run this command to get the models:
+
+    $ defense-finder update
+
+    Run it every so often to the the latest updates from us.
+    """
     pass
 
 @cli.command()
@@ -16,7 +24,7 @@ def update():
 def run(file: str):
     """Search for all known anti-phage defense systems in a protein sequence.
 
-    The 'file' argument should point to the file where the protein sequence is defined.
+    The 'file' argument should point to the file where the .faa protein sequence is defined.
     """
     with open(file) as f:
         defense_finder.run(f)
