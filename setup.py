@@ -32,11 +32,11 @@ setup(name='mdmparis-defense-finder',
         install_requires=[i for i in [l.strip() for l in open("requirements.txt").read().split('\n')] if i],
         packages=[
             'defense_finder',
-            'cli',
-            'updater'
-            ],
+            'defense_finder_cli',
+            'defense_finder_updater'
+        ],
         entry_points='''
           [console_scripts]
-          defense-finder=cli.main:cli
+          defense-finder=defense_finder_cli.main:cli
         '''
       )
