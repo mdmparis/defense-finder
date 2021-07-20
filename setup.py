@@ -7,14 +7,14 @@ def read_md(f):
         text = f.read()
     return text
 
-setup(name='bhmbio-defense-finder',
+setup(name='mdmparis-defense-finder',
         version='0.0.1',
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
         long_description=read_md('README.md'),
         long_description_content_type="text/markdown",
         author="Alexandre Hervé",
         author_email="alexandreherve@protonmail.com",
-        url="https://github.com/bhmbio/defense-finder",
+        url="https://github.com/mdmparis/defense-finder",
         license="GPLv3",
         classifiers=[
             'Development Status :: 4 - Beta',
