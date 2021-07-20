@@ -1,0 +1,12 @@
+*.egg-info
+.eggs
+*.log
+__pycache__
+bin
+build
+dist
+etc
+include
+lib
+lib64
+share
