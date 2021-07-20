@@ -1,8 +1,7 @@
 from subprocess import run
-import os
 
 script = """
-DIR="/tmp/defense-finder"
+DIR="/tmp/defense-finder-models"
 rm -rf $DIR
 mkdir $DIR
 macsydata download --org mdmparis -d $DIR defense-finder-models 
