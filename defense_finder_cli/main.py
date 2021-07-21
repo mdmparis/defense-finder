@@ -1,6 +1,6 @@
 import click
 import defense_finder
-import updater
+import defense_finder_updater
 
 @click.group()
 def cli():
@@ -17,7 +17,7 @@ def cli():
 @cli.command()
 def update():
     """Fetches the latest defense finder models from mdmlabs repositories."""
-    updater.update_models()
+    defense_finder_updater.update_models()
 
 @cli.command()
 @click.argument('file')
