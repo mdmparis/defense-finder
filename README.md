@@ -24,4 +24,7 @@ Here are the steps to follow in order to publish defense-finder:
 - get a new version number according to (semantic versionning)[https://semver.org/]
 - update the version un `setup.py`
 - commit this change, and tag the commit with `git tag -a v<your version number> -m '<your version number> <an optional message>'
-- then push this to master and wait for the Github actions task to complete.
+- push your commits to master
+- run `git push origin v<your version>` to sync the tags
+- wait for the Github actions task to complete.
+- all set!
