@@ -17,7 +17,7 @@ Updates the defense-finder models. Called during post-install and anytime later 
 
 A [Github action](https://github.com/mdmparis/defense-finder/actions) is setup to trigger a package release everytime a tagged commit is pushed.
 
-Note that you don't need to publish defense-finder everytime the models change: only changes in this repository are pertinent.
+Note that you don't need to publish defense-finder everytime the models change: only changes in this repository are relevant.
 
 Here are the steps to follow in order to publish defense-finder:
 - find the current version in the `setup` function of `setup.py`.
