@@ -1,16 +1,17 @@
 import click
 import defense_finder
 import defense_finder_updater
+import defense_finder_posttreat
 
 @click.group()
 def cli():
     """Systematic search of all known anti-phage systems by MDM Labs, Paris.
 
-    Run this command on first install to get the models:
+    Prior to using defense-finder:
+    - install hmmsearch: http://hmmer.org/documentation.html
+    - run this command on first install to get the models (then every so often to get the updates):
 
-    $ defense-finder update
-
-    Then run it every so often to get the latest models from us.
+        $ defense-finder update
 
     Tool repository: https://github.com/mdmparis/defense-finder.
     """
