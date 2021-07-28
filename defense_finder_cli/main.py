@@ -40,4 +40,5 @@ def run(file: str):
     """
     with open(file) as f:
         defense_finder.run(f)
+        defense_finder_posttreat.run()
 

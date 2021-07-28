@@ -29,11 +29,12 @@ setup(name='mdmparis-defense-finder',
             'Topic :: Scientific/Engineering :: Bio-Informatics'
             ],
         python_requires='>=3.7',
-        install_requires=[i for i in [l.strip() for l in open("requirements.txt").read().split('\n')] if i],
+        install_requires=[i for i in [l.strip() for l in open('requirements.txt').read().split('\n')] if i],
         packages=[
             'defense_finder',
             'defense_finder_cli',
-            'defense_finder_updater'
+            'defense_finder_updater',
+            'defense_finder_posttreat'
         ],
         entry_points='''
           [console_scripts]
