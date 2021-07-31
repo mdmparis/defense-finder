@@ -31,7 +31,7 @@ def update():
 
 @cli.command()
 @click.argument('file')
-@click.option('-o', '--out-dir', 'outdir')
+@click.option('-o', '--out-dir', 'outdir', help='The target directory where to store the results. Defaults to the current directory.')
 def run(file: str, outdir: str):
     """Search for known anti-phage defense systems in a protein.
 
