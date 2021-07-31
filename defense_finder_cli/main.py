@@ -32,14 +32,13 @@ def update():
     defense_finder_updater.update_models()
 
 @cli.command()
-@click.argument('file')
+@click.argument('file', type=click.Path(exists=True))
 @click.option('-o', '--out-dir', 'outdir', help='The target directory where to store the results. Defaults to the current directory.')
 def run(file: str, outdir: str):
-    """Search for known anti-phage defense systems in a protein.
-
-    Point the 'file' argument to the file where the .faa protein sequence is defined.
+    """Search for all known anti-phage defense systems in the target .faa protein file.
     """
-    with open(file) as f:
+    filename = click.format_filename(file)
+    with open(filename) as f:
         defense_finder.run(f)
 
     defense_finder_posttreat.run(outdir)
