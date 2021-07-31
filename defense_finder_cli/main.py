@@ -38,8 +38,6 @@ def run(file: str, outdir: str):
     """Search for known anti-phage defense systems in a protein.
 
     Point the 'file' argument to the file where the .faa protein sequence is defined.
-
-    Output is written to /tmp/defense-finder/
     """
     with open(file) as f:
         defense_finder.run(f)
