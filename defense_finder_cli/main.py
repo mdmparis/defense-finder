@@ -8,8 +8,10 @@ def cli():
     """Systematic search of all known anti-phage systems by MDM Labs, Paris.
 
     Prior to using defense-finder:
+
     - install hmmsearch: http://hmmer.org/documentation.html
-    - run this command on first install to get the models (then every so often to get the updates):
+
+    - get the models (run this every so often to stay up to date):
 
         $ defense-finder update
 
