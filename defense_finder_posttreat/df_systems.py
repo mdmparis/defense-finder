@@ -18,7 +18,7 @@ def systems_to_list(systems):
     return out
 
 def write_defense_finder_systems(systems_list):
-    with open('/tmp/defense-finder/results/defense_finder_systems.tsv', 'w') as defense_finder_systems_file:
+    with open('/tmp/defense-finder/output/defense_finder_systems.tsv', 'w') as defense_finder_systems_file:
         write = csv.writer(defense_finder_systems_file, delimiter='\t')
         write.writerows(systems_list)
 

@@ -16,6 +16,6 @@ def defense_finder_genes_to_list(defense_finder_genes):
     return out
 
 def write_defense_finder_genes(defense_finder_genes_list):
-    with open('/tmp/defense-finder/results/defense_finder_genes.tsv', 'w') as defense_finder_genes_file:
+    with open('/tmp/defense-finder/output/defense_finder_genes.tsv', 'w') as defense_finder_genes_file:
         write = csv.writer(defense_finder_genes_file, delimiter='\t')
         write.writerows(defense_finder_genes_list)
