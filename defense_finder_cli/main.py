@@ -31,7 +31,8 @@ def update():
 
 @cli.command()
 @click.argument('file')
-def run(file: str):
+@click.option('-o', '--out-dir', 'outdir')
+def run(file: str, outdir: str):
     """Search for known anti-phage defense systems in a protein.
 
     Point the 'file' argument to the file where the .faa protein sequence is defined.
@@ -40,5 +41,6 @@ def run(file: str):
     """
     with open(file) as f:
         defense_finder.run(f)
-        defense_finder_posttreat.run()
+
+    defense_finder_posttreat.run(outdir)
 

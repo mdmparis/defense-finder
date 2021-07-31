@@ -15,5 +15,3 @@ macsyfinder \
     """.format(file=f.name)
 
     subprocess.run(script, shell=True)
-
-    print("Analysis results are saved in /tmp/defense-finder/")
