@@ -8,7 +8,7 @@ def read_md(f):
     return text
 
 setup(name='mdmparis-defense-finder',
-        version='0.0.7',
+        version='0.0.8',
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
         long_description=read_md('README.md'),
         long_description_content_type="text/markdown",
