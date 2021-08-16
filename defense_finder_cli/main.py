@@ -34,13 +34,14 @@ def update():
 @cli.command()
 @click.argument('file', type=click.Path(exists=True))
 @click.option('-o', '--out-dir', 'outdir', help='The target directory where to store the results. Defaults to the current directory.')
+@click.option('-w', '--workers', 'workers', default=0, help='The workers count. By default all cores will be used (w=0).')
 @click.option('--db-type', 'dbtype', default='ordered_replicon', help='The macsyfinder --db-type option. Run macsyfinder --help for more details. Possible values are ordered_replicon, gembase, unordered, defaults to ordered_replicon.')
-def run(file: str, outdir: str, dbtype: str):
+def run(file: str, outdir: str, dbtype: str, workers: int):
     """Search for all known anti-phage defense systems in the target .faa protein file.
     """
     filename = click.format_filename(file)
     with open(filename) as f:
-        defense_finder.run(f, dbtype)
+        defense_finder.run(f, dbtype, workers)
 
     defense_finder_posttreat.run(outdir)
 
