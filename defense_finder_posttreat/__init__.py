@@ -27,4 +27,3 @@ def run(outpath):
 
     shutil.move(dir, outdir)
     print("Analysis results were written to {}".format(outdir))
-

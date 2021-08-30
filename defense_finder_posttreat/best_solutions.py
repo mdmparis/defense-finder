@@ -1,7 +1,8 @@
 import csv
 
 def get():
-    return format_best_solutions(parse_all())
+    parsed = parse_all()
+    return format_best_solutions(parsed)
 
 def parse_all():
     tsv_file = open('/tmp/defense-finder/all_best_solutions.tsv')
@@ -9,16 +10,19 @@ def parse_all():
     data = []
     for row in tsv: data.append(row)
     tsv_file.close()
-    data = data[3:]
-    header = data.pop(0)
-    out = []
-    for l in data:
-        if not l: continue
-        line_as_dict = {}
-        for idx, val in enumerate(header):
-            line_as_dict[val] = l[idx]
-        out.append(line_as_dict)
-    return out
+    if "No Systems found" in ' '.join(data[2]):
+        return []
+    else:
+        data = data[3:]
+        header = data.pop(0)
+        out = []
+        for l in data:
+            if not l: continue
+            line_as_dict = {}
+            for idx, val in enumerate(header):
+                line_as_dict[val] = l[idx]
+            out.append(line_as_dict)
+        return out
 
 def get_best_solutions_keys():
     return [
