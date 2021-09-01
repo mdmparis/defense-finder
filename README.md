@@ -1,10 +1,19 @@
 # Documentation DefenseFinder
 
-DefenseFinder is a program to systematically detect known anti-phage systems.
+DefenseFinder is a program to systematically detect known anti-phage systems. DefenseFinder uses Macsyfinder. 
 
-DefenseFinder uses Macsyfinder. For more details regarding several MacsyFinder options and details, go here.
+If you are using DefenseFinder please cite
+- "Systematic and quantitative view of the antiviral arsenal of prokaryotes" bioRxiv
+*Tesson F., Hervé A. , Touchon M., d’Humières C., Cury J., Bernheim A.*
+- "MacSyFinder: A Program to Mine Genomes for Molecular Systems with an Application to CRISPR-Cas Systems." PloS one 2014
+*Abby S., Néron B.,Ménager H., Touchon M. Rocha EPC.* 
+## DefenseFinder Models
 
-## Installing DefenseFinder command line interface
+This repository contains MacSyFinder models allowing for a systematic search of anti-phage systems, that contribute to the DefenseFinder tool.
+
+The repo is formatted according to [MacSyData guidelines](https://macsyfinder.readthedocs.io/en/latest/modeler_guide/index.html) and synchronized with [macsy-models repository](https://github.com/macsy-models) to be available in macsydata.
+
+# Installing DefenseFinder command line interface
 
 ### Install dependency
 
@@ -133,8 +142,8 @@ defense-finder run --help
 ```
 
 core-macsyfinder options
-_-o, --out-dir_ TEXT The target directory where to store the results.Defaults to the current directory.
-_-w, --workers_ INTEGER The workers count. By default all cores will be used (w=0).
-_--db-type_ TEXT The macsyfinder --db-type option. Possible values are ordered_replicon, gembase, unordered, defaults to ordered_replicon. Run macsyfinder --help for more details
+_ -o, --out-dir_ TEXT The target directory where to store the results.Defaults to the current directory.
+_ -w, --workers_ INTEGER The workers count. By default all cores will be used (w=0).
+_ --db-type_ TEXT The macsyfinder --db-type option. Possible values are ordered_replicon, gembase, unordered, defaults to ordered_replicon. Run macsyfinder --help for more details
 
 For questions: you can contact aude.bernheim@inserm.fr
