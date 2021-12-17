@@ -1,5 +1,5 @@
-import csv
 import os
+import csv
 
 def get_hit_sort_attr(hit):
     return hit['hit_id']
@@ -11,18 +11,19 @@ def remove_duplicates(hmmer_hits):
             temp_list.append(i)
     return temp_list
 
-def export_defense_finder_hmmer_hits():
-    paths = get_hmmer_paths()
+def export_defense_finder_hmmer_hits(tmp_dir, outdir):
+    paths = get_hmmer_paths(tmp_dir)
     hmmer_hits = []
     for path in paths:
         d = parse_hmmer_results_file(path)
         hmmer_hits = hmmer_hits + remove_duplicates(d)
     sorted_hmmer_hits = sorted(hmmer_hits, key=get_hit_sort_attr)
     hmmer_hits_list = hmmer_to_list(sorted_hmmer_hits)
-    write_defense_finder_hmmer(hmmer_hits_list)
+    write_defense_finder_hmmer(hmmer_hits_list, outdir)
 
-def write_defense_finder_hmmer(hmmer_hits_list):
-    with open('/tmp/defense-finder/output/defense_finder_hmmer.tsv', 'w') as defense_finder_hmmer_file:
+def write_defense_finder_hmmer(hmmer_hits_list, outdir):
+    filepath = os.path.join(outdir, 'defense_finder_hmmer.tsv')
+    with open(filepath, 'w') as defense_finder_hmmer_file:
         write = csv.writer(defense_finder_hmmer_file, delimiter='\t')
         write.writerows(hmmer_hits_list)
         defense_finder_hmmer_file.close()
@@ -47,9 +48,10 @@ def parse_hmmer_results_file(path):
         out.append(line_as_dict)
     return out
 
-def get_hmmer_paths():
+def get_hmmer_paths(tmp_dir):
     files = []
-    with os.scandir('/tmp/defense-finder/hmmer_results') as it:
+    hmmer_results_dir = os.path.join(tmp_dir, 'hmmer_results')
+    with os.scandir(hmmer_results_dir) as it:
         for entry in it:
             if entry.name.endswith('extract') and entry.is_file():
                 files.append(entry)

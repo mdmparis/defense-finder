@@ -1,3 +1,5 @@
+import os
+import shutil
 import click
 import defense_finder
 import defense_finder_updater
@@ -40,8 +42,22 @@ def run(file: str, outdir: str, dbtype: str, workers: int):
     """Search for all known anti-phage defense systems in the target .faa protein file.
     """
     filename = click.format_filename(file)
-    with open(filename) as f:
-        defense_finder.run(f, dbtype, workers)
 
-    defense_finder_posttreat.run(outdir)
+    # Prepare output folder
+    default_outdir = os.getcwd()
+    outdir = outdir if outdir != None else default_outdir
+    if not os.path.isabs(outdir):
+        outdir = os.path.join(os.getcwd(), outdir)
+    os.makedirs(outdir, exist_ok=True)
+
+    tmp_dir = os.path.join(outdir, 'defense-finder-tmp')
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+
+    os.makedirs(tmp_dir)
+
+    with open(filename) as f:
+        defense_finder.run(f, dbtype, workers, tmp_dir)
+
+    defense_finder_posttreat.run(tmp_dir, outdir)
 

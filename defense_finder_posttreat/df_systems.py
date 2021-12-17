@@ -1,11 +1,12 @@
+import os
 import csv
 from itertools import groupby
 from functools import reduce
 
-def export_defense_finder_systems(defense_finder_genes):
+def export_defense_finder_systems(defense_finder_genes, outdir):
     systems = build_defense_finder_systems(defense_finder_genes)
     systems_list = systems_to_list(systems)
-    write_defense_finder_systems(systems_list)
+    write_defense_finder_systems(systems_list, outdir)
 
 def systems_to_list(systems):
     header = get_system_keys()
@@ -17,8 +18,9 @@ def systems_to_list(systems):
         out.append(l)
     return out
 
-def write_defense_finder_systems(systems_list):
-    with open('/tmp/defense-finder/output/defense_finder_systems.tsv', 'w') as defense_finder_systems_file:
+def write_defense_finder_systems(systems_list, outdir):
+    filepath = os.path.join(outdir, 'defense_finder_systems.tsv')
+    with open(filepath, 'w') as defense_finder_systems_file:
         write = csv.writer(defense_finder_systems_file, delimiter='\t')
         write.writerows(systems_list)
 

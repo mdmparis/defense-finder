@@ -1,11 +1,12 @@
+import os
 import csv
 
-def get():
-    parsed = parse_all()
+def get(tmp_dir):
+    parsed = parse_all(tmp_dir)
     return format_best_solutions(parsed)
 
-def parse_all():
-    tsv_file = open('/tmp/defense-finder/all_best_solutions.tsv')
+def parse_all(tmp_dir):
+    tsv_file = open(os.path.join(tmp_dir, 'all_best_solutions.tsv'))
     tsv = csv.reader(tsv_file, delimiter='\t')
     data = []
     for row in tsv: data.append(row)
