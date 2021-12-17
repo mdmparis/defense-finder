@@ -38,7 +38,8 @@ def update():
 @click.option('-o', '--out-dir', 'outdir', help='The target directory where to store the results. Defaults to the current directory.')
 @click.option('-w', '--workers', 'workers', default=0, help='The workers count. By default all cores will be used (w=0).')
 @click.option('--db-type', 'dbtype', default='ordered_replicon', help='The macsyfinder --db-type option. Run macsyfinder --help for more details. Possible values are ordered_replicon, gembase, unordered, defaults to ordered_replicon.')
-def run(file: str, outdir: str, dbtype: str, workers: int):
+@click.option('--preserve-raw', 'preserve_raw', is_flag=True, default=False, help='Preserve raw MacsyFinder outputs alongside Defense Finder results inside the output directory.')
+def run(file: str, outdir: str, dbtype: str, workers: int, preserve_raw: bool):
     """Search for all known anti-phage defense systems in the target .faa protein file.
     """
     filename = click.format_filename(file)
@@ -60,4 +61,8 @@ def run(file: str, outdir: str, dbtype: str, workers: int):
         defense_finder.run(f, dbtype, workers, tmp_dir)
 
     defense_finder_posttreat.run(tmp_dir, outdir)
+
+    if not preserve_raw:
+        shutil.rmtree(tmp_dir)
+
 
