@@ -1,12 +1,14 @@
 # Documentation DefenseFinder
 
-DefenseFinder is a program to systematically detect known anti-phage systems. DefenseFinder uses Macsyfinder. 
+DefenseFinder is a program to systematically detect known anti-phage systems. DefenseFinder uses Macsyfinder.
 
 If you are using DefenseFinder please cite
+
 - "Systematic and quantitative view of the antiviral arsenal of prokaryotes" bioRxiv
-*Tesson F., Hervé A. , Touchon M., d’Humières C., Cury J., Bernheim A.*
+  _Tesson F., Hervé A. , Touchon M., d’Humières C., Cury J., Bernheim A._
 - "MacSyFinder: A Program to Mine Genomes for Molecular Systems with an Application to CRISPR-Cas Systems." PloS one 2014
-*Abby S., Néron B.,Ménager H., Touchon M. Rocha EPC.* 
+  _Abby S., Néron B.,Ménager H., Touchon M. Rocha EPC._
+
 ## DefenseFinder Models
 
 This repository contains MacSyFinder models allowing for a systematic search of anti-phage systems, that contribute to the DefenseFinder tool.
@@ -142,8 +144,10 @@ defense-finder run --help
 ```
 
 core-macsyfinder options
-_ -o, --out-dir_ TEXT The target directory where to store the results.Defaults to the current directory.
-_ -w, --workers_ INTEGER The workers count. By default all cores will be used (w=0).
-_ --db-type_ TEXT The macsyfinder --db-type option. Possible values are ordered_replicon, gembase, unordered, defaults to ordered_replicon. Run macsyfinder --help for more details
+
+- -o, --out-dir\_ TEXT The target directory where to store the results.Defaults to the current directory.
+- -w, --workers\_ INTEGER The workers count. By default all cores will be used (w=0).
+- --db-type\_ TEXT The macsyfinder --db-type option. Possible values are ordered\*replicon, gembase, unordered, defaults to ordered\*replicon. Run macsyfinder --help for more details
+- --preserve-raw Preserve raw MacsyFinder outputs alongside Defense Finder results inside the output directory.
 
 For questions: you can contact aude.bernheim@inserm.fr
