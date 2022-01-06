@@ -6,7 +6,7 @@ def get(tmp_dir):
     return format_best_solutions(parsed)
 
 def parse_all(tmp_dir):
-    tsv_file = open(os.path.join(tmp_dir, 'all_best_solutions.tsv'))
+    tsv_file = open(os.path.join(tmp_dir, 'best_solution.tsv'))
     tsv = csv.reader(tsv_file, delimiter='\t')
     data = []
     for row in tsv: data.append(row)

@@ -102,7 +102,7 @@ _defense_finder_systems.tsv_ : In this file, each line corresponds to a system f
 - name_of_profiles_in_sys List of the protein profiles found in the system (name from the HMM)
 
 _defense_finder_genes.tsv_ : In this file, each line corresponds to a gene found in a system. This is a summary of what was found and gives the following information.
-This follows MacsyFinder nomenclature (all_best_solution.tsv) and more can be found in the macsyfinder [documentation](https://macsyfinder.readthedocs.io/en/latest/user_guide/index.html#running-macsyfinder).
+This follows MacsyFinder nomenclature (best_solution.tsv) and more can be found in the macsyfinder [documentation](https://macsyfinder.readthedocs.io/en/latest/user_guide/index.html#running-macsyfinder).
 
 _defense_finder_hmmer.tsv_ : In this file, each line corresponds to a hit to any of the protein profiles involved in defense. Beware, a single protein can have several hits. This file is for a deep infection, of any proteins potentially linked to defense. However, biologically, it was shown that only a full system will be anti phage. So this should be interpreted with cautions.
 
