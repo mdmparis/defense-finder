@@ -48,13 +48,15 @@ def parse_hmmer_results_file(path):
         out.append(line_as_dict)
     return out
 
-def get_hmmer_paths(tmp_dir):
+def get_hmmer_paths(results_dir):
+    family_dirs = os.listdir(results_dir)
     files = []
-    hmmer_results_dir = os.path.join(tmp_dir, 'hmmer_results')
-    with os.scandir(hmmer_results_dir) as it:
-        for entry in it:
-            if entry.name.endswith('extract') and entry.is_file():
-                files.append(entry)
+    for family_dir in family_dirs:
+        hmmer_results_dir = os.path.join(results_dir, family_dir, 'hmmer_results')
+        with os.scandir(hmmer_results_dir) as it:
+            for entry in it:
+                if entry.name.endswith('extract') and entry.is_file():
+                    files.append(entry)
     return list(map(lambda i: i.path, files))
 
 

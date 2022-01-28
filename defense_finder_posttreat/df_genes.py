@@ -1,13 +1,13 @@
 import os
 import csv
-from defense_finder_posttreat import best_solutions
+from defense_finder_posttreat import best_solution
 
 def export_defense_finder_genes(defense_finder_genes, outdir):
     defense_finder_genes_list = defense_finder_genes_to_list(defense_finder_genes)
     write_defense_finder_genes(defense_finder_genes_list, outdir)
 
 def defense_finder_genes_to_list(defense_finder_genes):
-    header = best_solutions.get_best_solutions_keys()
+    header = best_solution.get_best_solution_keys()
     out = [header]
     for g in defense_finder_genes:
         l = []

@@ -2,11 +2,17 @@ import os
 import csv
 
 def get(tmp_dir):
-    parsed = parse_all(tmp_dir)
-    return format_best_solutions(parsed)
+    results = os.listdir(tmp_dir)
+    acc = []
 
-def parse_all(tmp_dir):
-    tsv_file = open(os.path.join(tmp_dir, 'best_solution.tsv'))
+    for family_dir in results:
+        family_path = os.path.join(tmp_dir, family_dir)
+        acc = acc + parse_best_solution(family_path)
+
+    return format_best_solution(acc)
+
+def parse_best_solution(dir):
+    tsv_file = open(os.path.join(dir, 'best_solution.tsv'))
     tsv = csv.reader(tsv_file, delimiter='\t')
     data = []
     for row in tsv: data.append(row)
@@ -25,22 +31,24 @@ def parse_all(tmp_dir):
             out.append(line_as_dict)
         return out
 
-def get_best_solutions_keys():
+def get_best_solution_keys():
     return [
-            'sol_id', 'replicon', 'hit_id', 'gene_name',
-            'hit_pos', 'sys_id', 'sys_loci', 'locus_num',
-            'sys_wholeness', 'sys_score', 'sys_occ',
-            'hit_gene_ref', 'type', 'subtype'
+            'replicon', 'hit_id', 'gene_name',
+            'hit_pos', 'model_fqn', 'sys_id', 'sys_loci', 'locus_num',
+            'sys_wholeness', 'sys_score', 'sys_occ','hit_gene_ref',
+            'hit_status','hit_seq_len','hit_i_eval', 'hit_score',
+            'hit_profile_cov', 'hit_seq_cov', 'hit_begin_match',
+            'hit_end_match', 'counterpart', 'used_in'
             ]
 
-def format_best_solutions(p):
+def format_best_solution(p):
     out = []
     for l in p:
         gene_ref = l['model_fqn']
         gene_ref_elements = gene_ref.split('/')
         type = gene_ref_elements[1]
         subtype = gene_ref_elements[2]
-        native_keys = list(filter(lambda i: i not in ['type', 'subtype'], get_best_solutions_keys()))
+        native_keys = list(filter(lambda i: i not in ['type', 'subtype'], get_best_solution_keys()))
         new_line = { key: l[key] for key in native_keys }
         new_line['type'] = type
         new_line['subtype'] = subtype
