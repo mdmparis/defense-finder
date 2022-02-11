@@ -46,8 +46,8 @@ def format_best_solution(p):
     for l in p:
         gene_ref = l['model_fqn']
         gene_ref_elements = gene_ref.split('/')
-        type = gene_ref_elements[1]
-        subtype = gene_ref_elements[2]
+        type = gene_ref_elements[2]
+        subtype = gene_ref_elements[3]
         native_keys = list(filter(lambda i: i not in ['type', 'subtype'], get_best_solution_keys()))
         new_line = { key: l[key] for key in native_keys }
         new_line['type'] = type
