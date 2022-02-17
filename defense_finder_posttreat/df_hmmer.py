@@ -29,7 +29,7 @@ def write_defense_finder_hmmer(hmmer_hits_list, outdir):
         defense_finder_hmmer_file.close()
 
 def get_hmmer_keys():
-    return ['hit_id', 'gene_name', 'i-eval', 'score', 'profile_coverage']
+    return ['hit_id', 'replicon', 'position_hit', 'hit_sequence_length', 'gene_name']
 
 def parse_hmmer_results_file(path):
     tsv_file = open(path)
