@@ -5,8 +5,7 @@ DefenseFinder is a program to systematically detect known anti-phage systems. De
 
 If you are using DefenseFinder please cite
 
-- "Systematic and quantitative view of the antiviral arsenal of prokaryotes" bioRxiv
-  _Tesson F., Hervé A. , Touchon M., d’Humières C., Cury J., Bernheim A._
+- "Systematic and quantitative view of the antiviral arsenal of prokaryotes" [Nature Communication](https://www.nature.com/articles/s41467-022-30269-9.pdf), 2022, _Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A._
 - "MacSyFinder: A Program to Mine Genomes for Molecular Systems with an Application to CRISPR-Cas Systems." PloS one 2014
   _Abby S., Néron B.,Ménager H., Touchon M. Rocha EPC._
 
