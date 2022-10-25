@@ -67,10 +67,34 @@ defense-finder update
 
 When the DefenseFinder models are updated you only have to update the models and not the tool.
 However, if you have an outdated version of the DefenseFinder tool, you can use the following line to get the most recent version
+
 ```sh	
 pip install -U mdmparis-defense-finder
 defense-finder update
 ```
+### defense-finder update options
+To check the different DefenseFinder update options run
+
+```bash
+$ defense-finder update --help
+
+Usage: defense-finder update [OPTIONS]
+
+  Fetches the latest defense finder models.
+
+  The models will be downloaded from mdmparis repositories and installed on
+  macsydata.
+
+  This will make them available to macsyfinder and ultimately to defense-
+  finder.
+
+  Models repository: https://github.com/mdmparis/defense-finder-models.
+
+Options:
+  --models-dir TEXT  Specify a directory containing your models.
+  --help             Show this message and exit.
+```
+
 
 ## Running Defense Finder
 
@@ -95,27 +119,28 @@ ATTENTION, If you want to run DefenseFinder on a larger set of genomes you need 
 DefenseFinder will generate three types of files (and an option to conserve MacSyFinder options).
 All the files are described below.
 
-_defense_finder_systems.tsv_ : In this file, each line corresponds to a system found in the given genomes. This is a summary of what was found and gives the following information
+`defense_finder_systems.tsv` : In this file, each line corresponds to a system found in the given genomes. This is a summary of what was found and gives the following information
 
-- sys_id : Each system detected by DefenseFinder have a unique ID based on the replicon where it was found and the type of systems
-- type: Type of the anti-phage system found (such as RM, Cas...)
-- subtype : Subtype of the anti-phage system found (such as RM_type_I, CAS_Class1-Subtype-I-E)
-- sys_beg : Protein where the system begins (name found in the input file)
-- sys_end : Protein where the system ends (name found in the input file)
-- protein_in_syst : List of all protein(s) present in this system (name found in the input file)
-- genes_count : Number of genes found in the system
-- name_of_profiles_in_sys:  List of the protein profiles that hit the protein of the system (name from the HMM).
+- `sys_id` : Each system detected by DefenseFinder have a unique ID based on the replicon where it was found and the type of systems
+- `type`: Type of the anti-phage system found (such as RM, Cas...)
+- `subtype` : Subtype of the anti-phage system found (such as RM_type_I, CAS_Class1-Subtype-I-E)
+- `sys_beg` : Protein where the system begins (name found in the input file)
+- `sys_end` : Protein where the system ends (name found in the input file)
+- `protein_in_syst` : List of all protein(s) present in this system (name found in the input file)
+- `genes_count` : Number of genes found in the system
+- `name_of_profiles_in_sys`:  List of the protein profiles that hit the protein of the system (name from the HMM).
 
-_defense_finder_genes.tsv_ : In this file, each line corresponds to a gene found in a system.
+`defense_finder_genes.tsv` : In this file, each line corresponds to a gene found in a system.
 For each gene, there is several information such as the replicon, the position, the system..
 All the information comes from MacSyFinder and follows MacSyFinder nomenclature (best_solution.tsv) and more can be found in the MacSyFinder Ma [documentation](https://macsyfinder.readthedocs.io/en/latest/user_guide/outputs.html).
 
-_defense_finder_hmmer.tsv_ : In this file, each line corresponds to an HMM hit. This file show all hit of HMM regardless if they are in a complete system or not. Those results have to be used cautiously for deep inspection. Indeed, biologically, it was shown that only a full system will be anti phage. This function can be used to found defense gene in small portion of genomes.
+`defense_finder_hmmer.tsv` : In this file, each line corresponds to an HMM hit. This file show all hit of HMM regardless if they are in a complete system or not. Those results have to be used cautiously for deep inspection. Indeed, biologically, it was shown that only a full system will be anti phage. This function can be used to found defense gene in small portion of genomes.
 Beware, a single protein can have several hits. The output is a part of the result of HMMer results table.
-- hit_id : the protein name (name found in the input file)
-- replicon : The name of the replicon
-- position_hit: The position in the input file
-- Gene_name : the name of the HMM
+
+- `hit_id` : the protein name (name found in the input file)
+- `replicon` : The name of the replicon
+- `position_hit`: The position in the input file
+- `Gene_name` : the name of the HMM
 
 By using the argument --preserve-raw , you will have all the results from MacSyFinder. Those results are explained [here](https://macsyfinder.readthedocs.io/en/latest/user_guide/outputs.html)
 
@@ -152,17 +177,31 @@ To use DefenseFinder with gembase format file on larger dataset of genomes run
 defense-finder run –dbtype gembase esco_genomes.faa
 ```
 
-## DefenseFinder options
+## defense-finder run options
 To check the different DefenseFinder options run
 
-```sh
-defense-finder run --help
-```
-DefenseFinder has 4 options:
+```bash
+$ defense-finder run --help
 
-- -o, --out-dir\_ TEXT The target directory where to store the results.Defaults to the current directory.
-- -w, --workers\_ INTEGER The workers count. By default all cores will be used (w=0).
-- --db-type\_ TEXT The macsyfinder --db-type option. Possible values are ordered\_replicon, gembase, unordered, defaults to ordered\_replicon. Run macsyfinder --help for more details
-- --preserve-raw Preserve raw MacSyFinder outputs alongside Defense Finder results inside the output directory.
+Usage: defense-finder run [OPTIONS] FILE
+
+  Search for all known anti-phage defense systems in the target .faa protein
+  file.
+
+Options:
+  -o, --out-dir TEXT     The target directory where to store the results.
+                         Defaults to the current directory.
+  -w, --workers INTEGER  The workers count. By default all cores will be used
+                         (w=0).
+  --db-type TEXT         The macsyfinder --db-type option. Run macsyfinder
+                         --help for more details. Possible values are
+                         ordered_replicon, gembase, unordered, defaults to
+                         ordered_replicon.
+  --preserve-raw         Preserve raw MacsyFinder outputs alongside Defense
+                         Finder results inside the output directory.
+  --models-dir TEXT      Specify a directory containing your models.
+  --help                 Show this message and exit.
+```
+
 
 For questions: you can contact aude.bernheim@inserm.fr
