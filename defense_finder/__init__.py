@@ -1,16 +1,33 @@
-import subprocess
+import os
+import colorlog
+
+from macsypy.scripts import macsyfinder
+
 
 def run(f, dbtype, workers, tmp_dir, models_dir, nocut_ga):
-    arg_nocut = "--no-cut-ga" if nocut_ga else ""
-    arg_dir = f"--models-dir {models_dir}" if models_dir is not None else ""
 
-    script = f"""
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/DefenseFinder_1 all --out-dir {tmp_dir}/DF_1 --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/DefenseFinder_2 all --out-dir {tmp_dir}/DF_2 --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/DefenseFinder_3 all --out-dir {tmp_dir}/DF_3 --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/DefenseFinder_4 all --out-dir {tmp_dir}/DF_4 --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/DefenseFinder_5 all --out-dir {tmp_dir}/DF_5 --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/RM all --out-dir {tmp_dir}/RM --coverage-profile 0.1  --w {workers} --exchangeable-weight 1 {arg_dir} {arg_nocut}
-macsyfinder --db-type {dbtype} --sequence-db "{f.name}" --models defense-finder-models/Cas all --out-dir {tmp_dir}/Cas --accessory-weight 1 --exchangeable-weight 1 --coverage-profile 0.4 -w {workers} {arg_dir} {arg_nocut}
-"""
-    subprocess.run(script, shell=True)
+    gen_args = ['--db-type', dbtype, '--sequence-db', f.name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
+                '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
+                '--coverage-profile', '0.1', '--exchangeable-weight', '1']
+    scripts = [[f.format(i=i) for f in gen_args] for i in range(1, 6)]
+
+    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'defense-finder-models/RM', 'all',
+                     '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
+                     '--coverage-profile', '0.1', '--exchangeable-weight', '1'])
+
+    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'CASFinder', 'all',
+                     '--out-dir', os.path.join(tmp_dir, 'Cas'), '-w', str(workers)])
+
+    for msf_cmd in scripts:
+        if nocut_ga:
+            msf_cmd.append("--no-cut-ga")
+        if models_dir:
+            msf_cmd.extend(("--models-dir", models_dir))
+        macsyfinder.main(args=msf_cmd)
+
+        # to avoid that the macsyfinder log messages
+        # appear 7 times (one by msf call
+        logger = colorlog.getLogger('macsypy')
+        for h in logger.handlers[:]:
+            logger.removeHandler(h)
+
