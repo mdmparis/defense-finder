@@ -43,6 +43,8 @@ def update(models_dir=None):
               help='The target directory where to store the results. Defaults to the current directory.')
 @click.option('-w', '--workers', 'workers', default=0,
               help='The workers count. By default all cores will be used (w=0).')
+@click.option('-c', '--coverage', 'coverage', default=0.4,
+              help='Minimal percentage of coverage for each profiles. By default set to 0.4')
 @click.option('--db-type', 'dbtype', default='ordered_replicon',
               help='The macsyfinder --db-type option. Run macsyfinder --help for more details. Possible values are\
                ordered_replicon, gembase, unordered, defaults to ordered_replicon.')
@@ -52,7 +54,7 @@ def update(models_dir=None):
 @click.option('--no-cut-ga', 'no_cut_ga', is_flag=True, default=False,
               help='Advanced! Run macsyfinder in no-cut-ga mode. The validity of the genes and systems found is not guaranteed!')
 
-def run(file: str, outdir: str, dbtype: str, workers: int, preserve_raw: bool, no_cut_ga: bool, models_dir: str = None ):
+def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, no_cut_ga: bool, models_dir: str = None ):
     """Search for all known anti-phage defense systems in the target .faa protein file.
     """
     filename = click.format_filename(file)
@@ -71,7 +73,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, preserve_raw: bool, n
     os.makedirs(tmp_dir)
 
     with open(filename) as f:
-        defense_finder.run(f, dbtype, workers, tmp_dir, models_dir, no_cut_ga)
+        defense_finder.run(f, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga)
 
     defense_finder_posttreat.run(tmp_dir, outdir)
 
