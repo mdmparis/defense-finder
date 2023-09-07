@@ -15,7 +15,7 @@ def run(f, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga):
                      '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
                      '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
 
-    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'CasFinder', 'all',
+    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'CASFinder', 'all',
                      '--out-dir', os.path.join(tmp_dir, 'Cas'), '-w', str(workers)])
 
     for msf_cmd in scripts:
