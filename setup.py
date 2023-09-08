@@ -8,12 +8,12 @@ def read_md(f):
     return text
 
 setup(name='mdmparis-defense-finder',
-        version='1.0.9',
+        version='1.1.0',
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
         long_description=read_md('README.md'),
         long_description_content_type="text/markdown",
-        author="Alexandre Hervé",
-        author_email="alexandreherve@protonmail.com",
+        author="Jean Cury",
+        author_email="jean.cury@normalesup.org",
         url="https://github.com/mdmparis/defense-finder",
         license="GPLv3",
         classifiers=[
