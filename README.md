@@ -203,5 +203,26 @@ Options:
   --help                 Show this message and exit.
 ```
 
+## Development
 
+To install defense-finder in development mode (so when you edit a file the changes are directly visible without reinstalling), one can do :
+
+```bash
+conda create -n defensefinder_dev
+conda activate defensefinder_dev
+pip install -e .
+defense-finder update
+```
+
+To test that changes in the code are not breaking the output, you can compare your results with the test dataset : 
+
+``bash
+defense-finder run test/df_test_file.fasta
+#
+diff -q defense_finder_systems.tsv test/expected_results/defense_finder_systems.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!" 
+diff -q defense_finder_genes.tsv test/expected_results/defense_finder_genes.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
+diff -q defense_finder_hmmer.tsv test/expected_results/defense_finder_hmmer.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
+```
+
+---
 For questions: you can contact aude.bernheim@inserm.fr
