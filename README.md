@@ -216,7 +216,7 @@ defense-finder update
 
 To test that changes in the code are not breaking the output, you can compare your results with the test dataset : 
 
-``bash
+```bash
 defense-finder run test/df_test_file.fasta
 #
 diff -q defense_finder_systems.tsv test/expected_results/defense_finder_systems.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!" 
