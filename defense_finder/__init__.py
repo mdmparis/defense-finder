@@ -4,18 +4,18 @@ import colorlog
 from macsypy.scripts import macsyfinder
 
 
-def run(f, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga):
+def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga):
 
-    gen_args = ['--db-type', dbtype, '--sequence-db', f.name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
+    gen_args = ['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
                 '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
                 '--coverage-profile', str(coverage), '--exchangeable-weight', '1']
     scripts = [[f.format(i=i) for f in gen_args] for i in range(1, 6)]
 
-    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'defense-finder-models/RM', 'all',
+    scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/RM', 'all',
                      '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
                      '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
 
-    scripts.append(['--db-type', dbtype, '--sequence-db', f.name, '--models', 'CasFinder', 'all',
+    scripts.append(['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'CasFinder', 'all',
                      '--out-dir', os.path.join(tmp_dir, 'Cas'), '-w', str(workers)])
 
     for msf_cmd in scripts:

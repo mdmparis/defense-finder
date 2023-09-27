@@ -4,7 +4,8 @@ import click
 import defense_finder
 import defense_finder_updater
 import defense_finder_posttreat
-
+from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
+import pyrodigal
 
 @click.group()
 def cli():
@@ -72,8 +73,32 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
     os.makedirs(tmp_dir)
 
-    with open(filename) as f:
-        defense_finder.run(f, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga)
+    with SequenceFile(filename) as sf:
+        seq = TextSequence()
+        dic_genes = {}
+        if sf.guess_alphabet() == Alphabet.dna():
+            while sf.readinto(seq) is not None: # iterate over sequences in case multifasta
+                sseq = bytes(seq.sequence, encoding="utf-8")
+                sname = seq.name.decode()
+                if len(sseq) < 100000: # it is recommended to use the mode meta when seq is less than 100kb
+                    orf_finder = pyrodigal.GeneFinder(meta=True)
+                    dic_genes[sname] = orf_finder.find_genes(sseq)
+                else:
+                    orf_finder = pyrodigal.GeneFinder()
+                    orf_finder.train(sseq)
+                    dic_genes[sname] = orf_finder.find_genes(sseq)
+            protein_file_name = f"{os.path.splitext(filename)[0]}.prt"
+            with open(protein_file_name, "w") as protein_file:
+                for key, genes in dic_genes.items():
+                    # proteins will be like `> contig_name_i` with i being increasing integer 
+                    genes.write_translations(protein_file, key)
+            # prodigal correctly numbered the protein in a gembase like format (cf above)
+            dbtype = "gembase"
+        else:
+            protein_file_name = filename
+
+
+    defense_finder.run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga)
 
     defense_finder_posttreat.run(tmp_dir, outdir)
 
