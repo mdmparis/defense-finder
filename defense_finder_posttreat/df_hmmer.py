@@ -11,7 +11,7 @@ def remove_duplicates(hmmer_hits):
             temp_list.append(i)
     return temp_list
 
-def export_defense_finder_hmmer_hits(tmp_dir, outdir):
+def export_defense_finder_hmmer_hits(tmp_dir, outdir, filename):
     paths = get_hmmer_paths(tmp_dir)
     hmmer_hits = []
     for path in paths:
@@ -19,10 +19,10 @@ def export_defense_finder_hmmer_hits(tmp_dir, outdir):
         hmmer_hits = hmmer_hits + remove_duplicates(d)
     sorted_hmmer_hits = sorted(hmmer_hits, key=get_hit_sort_attr)
     hmmer_hits_list = hmmer_to_list(sorted_hmmer_hits)
-    write_defense_finder_hmmer(hmmer_hits_list, outdir)
+    write_defense_finder_hmmer(hmmer_hits_list, outdir, filename)
 
-def write_defense_finder_hmmer(hmmer_hits_list, outdir):
-    filepath = os.path.join(outdir, 'defense_finder_hmmer.tsv')
+def write_defense_finder_hmmer(hmmer_hits_list, outdir, filename):
+    filepath = os.path.join(outdir,  f'{filename}_defense_finder_hmmer.tsv')
     with open(filepath, 'w') as defense_finder_hmmer_file:
         write = csv.writer(defense_finder_hmmer_file, delimiter='\t')
         write.writerows(hmmer_hits_list)

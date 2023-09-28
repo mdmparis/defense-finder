@@ -10,3 +10,4 @@ include
 lib
 lib64
 share
+*.idx

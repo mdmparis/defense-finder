@@ -108,7 +108,7 @@ defense-finder run genome.faa
 
 ### Input.
 
-The input file, here “genome.faa” has to be under the format of protein fasta, where all proteins are in the order of their position in the genome. Indeed DefenseFinder takes into account the order of the proteins.
+The input file, here “genome.faa” can be a protein fasta file or a nucleotide fasta file. In case of a protein file all proteins should in the order of their position in the genome. Indeed DefenseFinder takes into account the order of the proteins. DefenseFinder automatically detects whether the file is a nucleotide or a protein fasta file. 
 
 A run on a genome (few thousand proteins) should take less than two minutes on a standard laptop. If more, make sure everything is installed properly.
 In this configuration, all the replicon will be named UserReplicon.
@@ -185,14 +185,15 @@ $ defense-finder run --help
 
 Usage: defense-finder run [OPTIONS] FILE
 
-  Search for all known anti-phage defense systems in the target .faa protein
-  file.
+  Search for all known anti-phage defense systems in the target fasta file.
 
 Options:
   -o, --out-dir TEXT     The target directory where to store the results.
                          Defaults to the current directory.
   -w, --workers INTEGER  The workers count. By default all cores will be used
                          (w=0).
+  -c, --coverage FLOAT   Minimal percentage of coverage for each profiles. By
+                         default set to 0.4
   --db-type TEXT         The macsyfinder --db-type option. Run macsyfinder
                          --help for more details. Possible values are
                          ordered_replicon, gembase, unordered, defaults to
@@ -200,7 +201,12 @@ Options:
   --preserve-raw         Preserve raw MacsyFinder outputs alongside Defense
                          Finder results inside the output directory.
   --models-dir TEXT      Specify a directory containing your models.
-  --help                 Show this message and exit.
+  --no-cut-ga            Advanced! Run macsyfinder in no-cut-ga mode. The
+                         validity of the genes and systems found is not
+                         guaranteed!
+  --log-level TEXT       set the logging level among DEBUG, [INFO], WARNING,
+                         ERROR, CRITICAL
+  -h, --help             Show this message and exit.
 ```
 
 ## Development
@@ -217,11 +223,18 @@ defense-finder update
 To test that changes in the code are not breaking the output, you can compare your results with the test dataset : 
 
 ```bash
-defense-finder run test/df_test_file.fasta
+defense-finder run test/df_test_prot.faa
+defense-finder run test/df_test_nt.fna
+
 #
-diff -q defense_finder_systems.tsv test/expected_results/defense_finder_systems.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!" 
-diff -q defense_finder_genes.tsv test/expected_results/defense_finder_genes.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
-diff -q defense_finder_hmmer.tsv test/expected_results/defense_finder_hmmer.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
+for i in systems genes hmmer; do
+echo "Verifying $i results in : " 
+echo -n "Protein file :"
+diff -q df_test_prot_defense_finder_$i.tsv test/expected_results/df_test_prot_defense_finder_$i.tsv && echo " > Tests OK" || echo " >> Test Failed <<"
+echo -n "Nucleotide file :"
+diff -q df_test_nt_defense_finder_$i.tsv test/expected_results/df_test_nt_defense_finder_$i.tsv && echo " > Tests OK" || echo " >> Test Failed <<"
+echo
+done
 ```
 
 ---
