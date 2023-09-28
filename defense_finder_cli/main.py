@@ -15,7 +15,7 @@ except AttributeError:
     logging = colorlog.wrappers.logging
 
 
-@click.group()
+@click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 def cli():
     """Systematic search of all known anti-phage systems by MDM Labs, Paris.
 
@@ -63,7 +63,7 @@ def update(models_dir=None):
 @click.option('--no-cut-ga', 'no_cut_ga', is_flag=True, default=False,
               help='Advanced! Run macsyfinder in no-cut-ga mode. The validity of the genes and systems found is not guaranteed!')
 @click.option('--log-level', 'loglevel', default="INFO",
-              help='set the logging level among DEBUG, INFO, WARNING, ERROR, CRITICAL')
+              help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 
 
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO"):
