@@ -217,11 +217,18 @@ defense-finder update
 To test that changes in the code are not breaking the output, you can compare your results with the test dataset : 
 
 ```bash
-defense-finder run test/df_test_file.fasta
+defense-finder run test/df_test_prot.faa
+defense-finder run test/df_test_nt.fna
+
 #
-diff -q defense_finder_systems.tsv test/expected_results/defense_finder_systems.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!" 
-diff -q defense_finder_genes.tsv test/expected_results/defense_finder_genes.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
-diff -q defense_finder_hmmer.tsv test/expected_results/defense_finder_hmmer.tsv && echo ">>>> Tests OK" || echo "!!! >>>> Test Failed <<<< !!!"
+for i in systems genes hmmer; do
+echo "Verifying $i results in : " 
+echo -n "Protein file :"
+diff -q df_test_prot_defense_finder_$i.tsv test/expected_results/df_test_prot_defense_finder_$i.tsv && echo " > Tests OK" || echo " >> Test Failed <<"
+echo -n "Nucleotide file :"
+diff -q df_test_nt_defense_finder_$i.tsv test/expected_results/df_test_nt_defense_finder_$i.tsv && echo " > Tests OK" || echo " >> Test Failed <<"
+echo
+done
 ```
 
 ---
