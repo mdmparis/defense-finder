@@ -88,6 +88,8 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                     orf_finder.train(sseq)
                     dic_genes[sname] = orf_finder.find_genes(sseq)
             protein_file_name = f"{os.path.splitext(filename)[0]}.prt"
+            if os.path.exists(protein_file_name):
+                protein_file_name += "_defensefinder.prt"
             with open(protein_file_name, "w") as protein_file:
                 for key, genes in dic_genes.items():
                     # proteins will be like `> contig_name_i` with i being increasing integer 
