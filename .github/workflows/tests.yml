@@ -1,0 +1,31 @@
+name: tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage
+        pip install -e .
+    - name: Setup DefenseFinder
+      run: |
+        defense-finder update
+    - name: Run the tests
+      run: |
+        coverage run --source . tests/run_tests.py
+        coverage report -m
