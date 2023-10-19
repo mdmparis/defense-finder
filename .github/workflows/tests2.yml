@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+        run: python -m pip install --upgrade pip coverage
       - name: Install HMMER
         run: sudo apt-get -y install hmmer
       - name: Install MacSyFinder
