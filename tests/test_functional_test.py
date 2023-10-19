@@ -1,7 +1,7 @@
 import os
 
 from defense_finder_cli.main import run
-from test import TooledTest, FakeExitCodeException
+from tests import TooledTest, FakeExitCodeException
 
 
 def cleaned_lines(expected):
@@ -9,7 +9,7 @@ def cleaned_lines(expected):
 
 
 class Test(TooledTest):
-    data_dir = "test/data"
+    data_dir = "tests/data"
     res_dir = "expected_results"
 
     def test_data_content(self):
