@@ -16,16 +16,17 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: hmmer
         version: 1.0
-    - run: pip install -r requirements.txt
-    - run: pip install coverage
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+    - run: pip install coverage -r requirements.txt
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install .[dev]
     - name: Update DefenseFinder models
       run: |
