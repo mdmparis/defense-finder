@@ -33,6 +33,7 @@ jobs:
         defense-finder update
     - name: Run the tests
       run: |
+        macsydata list
         export PYTHONPATH="$(pwd)"
         coverage run --source . tests/run_tests.py
         coverage report -m
