@@ -10,7 +10,8 @@ def cleaned_lines(expected):
 
 class Test(TooledTest):
     data_dir = "tests/data"
-    res_dir = "expected_results"
+    exp_dir = "expected_results"
+    prd_dir = "produced_results"
 
     def test_data_content(self):
         data_dirs = []
@@ -18,7 +19,7 @@ class Test(TooledTest):
             # get all subdir of data
             subdir = os.path.join(self.data_dir, subdir)
             # but only if it contains expected_dir
-            if not os.path.exists(os.path.join(subdir, self.res_dir)):
+            if not os.path.exists(os.path.join(subdir, self.exp_dir)):
                 continue
             for input_file in os.listdir(subdir):
                 # all all fna and faa files, append them
@@ -36,16 +37,18 @@ class Test(TooledTest):
                     [
                         os.path.join(subdir, input_file),
                         "-o",
-                        subdir,
+                        os.path.join(subdir, self.prd_dir),
                     ]
                 )
         self.assertEqual(str(ctx.exception), "0")  # check the returncode
 
         try:
-            for file in os.listdir(os.path.join(subdir, self.res_dir)):
+            for file in os.listdir(os.path.join(subdir, self.exp_dir)):
                 with open(
-                    os.path.join(subdir, self.res_dir, file), "r"
-                ) as expected, open(os.path.join(subdir, file), "r") as produced:
+                    os.path.join(subdir, self.exp_dir, file), "r"
+                ) as expected, open(
+                    os.path.join(os.path.join(subdir, self.prd_dir), file), "r"
+                ) as produced:
                     expected_lines = cleaned_lines(expected)
                     produced_lines = cleaned_lines(produced)
                     self.assertSetEqual(expected_lines, produced_lines, file)
