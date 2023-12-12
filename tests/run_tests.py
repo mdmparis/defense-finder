@@ -89,18 +89,18 @@ def main(args=None):
 
     args = parser.parse_args(args)
 
-    # MACSY_HOME = os.path.abspath(os.path.join(__file__, '..', '..'))
+    MACSY_HOME = os.path.abspath(os.path.join(__file__, '..', '..'))
 
-    # old_path = sys.path
+    old_path = sys.path
 
-    # if MACSY_HOME not in sys.path:
-    #     # need to add tests in path
-    #     # tests inherits from IntegronTest which is located in tests/__init__.py
-    #     sys.path.insert(0, MACSY_HOME)
+    if MACSY_HOME not in sys.path:
+        # need to add tests in path
+        # tests inherits from IntegronTest which is located in tests/__init__.py
+        sys.path.insert(0, MACSY_HOME)
 
     test_runner = run_tests(args.tests, verbosity=args.verbosity)
     unit_results = test_runner.wasSuccessful()
-    # sys.path = old_path
+    sys.path = old_path
     return unit_results
 
 
