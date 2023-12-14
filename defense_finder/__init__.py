@@ -2,7 +2,6 @@ import os
 import colorlog
 
 from macsypy.scripts import macsyfinder
-from macsypy.scripts import macsydata
 
 
 def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga, loglevel):
@@ -27,7 +26,6 @@ def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut
         if loglevel != "DEBUG":
             msf_cmd.append("--mute")
 
-        macsydata.main(args=["list"])
         macsyfinder.main(args=msf_cmd)
 
         # to avoid that the macsyfinder log messages
