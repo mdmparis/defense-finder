@@ -5,7 +5,7 @@ from tests import TooledTest, FakeExitCodeException
 
 
 def cleaned_lines(expected):
-    return set(sorted([line.upper() for line in expected.readlines()]))
+    return set(sorted([line for line in expected.readlines()]))
 
 
 class Test(TooledTest):
