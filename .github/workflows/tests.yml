@@ -33,5 +33,6 @@ jobs:
         defense-finder update
     - name: Run the tests
       run: |
+        export PYTHONPATH="$(pwd)"
         coverage run --source . tests/run_test.py
         coverage report -m
