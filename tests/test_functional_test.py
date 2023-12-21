@@ -64,13 +64,17 @@ class Test(TooledTest):
 
         try:
             for file in os.listdir(os.path.join(subdir, self.exp_dir)):
-                with open(
-                    os.path.join(subdir, self.exp_dir, file), "r"
+                with self.subTest(
+                    file=file
+                ), open(
+                    os.path.join(subdir, self.exp_dir, file),
+                    "r",
                 ) as expected, open(
-                    os.path.join(os.path.join(subdir, self.prd_dir), file), "r"
+                    os.path.join(os.path.join(subdir, self.prd_dir), file),
+                    "r",
                 ) as produced:
-                    expected_lines = cleaned_lines(expected)
-                    produced_lines = cleaned_lines(produced)
+                    expected_lines = cleaned_lines(expected, filename=file)
+                    produced_lines = cleaned_lines(produced, filename=file)
                     self.assertSetEqual(expected_lines, produced_lines, file)
         except AssertionError as ae:
             print(out.getvalue().strip(), err.getvalue().strip())
