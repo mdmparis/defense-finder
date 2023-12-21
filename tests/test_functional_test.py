@@ -1,11 +1,31 @@
+import csv
 import os
 
 from defense_finder_cli.main import run
 from tests import TooledTest, FakeExitCodeException
 
 
-def cleaned_lines(expected):
-    return set(sorted([line for line in expected.readlines()]))
+def cleaned_lines(file, filename=""):
+    lines = set()
+    reader = csv.reader(file, delimiter='\t')
+    col_ids_to_del = []
+    header = None
+    if filename.endswith('genes.tsv'):
+        col_names_to_del = [
+            'sys_id',
+        ]
+    else:
+        col_names_to_del = []
+    for row in reader:
+        if header is None:
+            header = row
+            for col_name in col_names_to_del:
+                col_ids_to_del.append(header.index(col_name))
+        else:
+            for col_id in col_ids_to_del:
+                del row[col_id]
+            lines.add('\t'.join(row))
+    return lines
 
 
 class Test(TooledTest):
