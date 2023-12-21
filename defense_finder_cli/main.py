@@ -34,7 +34,9 @@ def cli():
 
 @cli.command()
 @click.option('--models-dir', 'models_dir', required=False, help='Specify a directory containing your models.')
-def update(models_dir=None):
+@click.option('--force-reinstall', '-f', 'force_reinstall', is_flag=True,
+              help='Force update even if models in already there.', default=False)
+def update(models_dir=None, force_reinstall: bool = False):
     """Fetches the latest defense finder models.
 
     The models will be downloaded from mdmparis repositories and installed on macsydata.
@@ -43,7 +45,7 @@ def update(models_dir=None):
 
     Models repository: https://github.com/mdmparis/defense-finder-models.
     """
-    defense_finder_updater.update_models(models_dir)
+    defense_finder_updater.update_models(models_dir, force_reinstall)
 
 
 @cli.command()
