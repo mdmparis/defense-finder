@@ -7,6 +7,7 @@ import defense_finder_posttreat
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
 from macsypy.scripts.macsydata import get_version_message
+from macsypy.scripts.macsydata import _find_all_installed_packages
 
 import colorlog
 try:
@@ -148,7 +149,15 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
     if not preserve_raw:
         shutil.rmtree(tmp_dir)
-    
+
+    models = _find_all_installed_packages().models()
+    versions_models = []
+    for m in models:
+        if "cas" in m.path.lower() or "defense-finder" in m.path.lower():
+            versions_models.append([m.path, m.version])
+    nl = "\n"
+    tab = "\t"
+
     logger.info(f"""\
 Analysis done. Please cite :
 
@@ -158,4 +167,9 @@ Systematic and quantitative view of the antiviral arsenal of prokaryotes
 DefenseFinder relies on MacSyFinder : 
 
 {get_version_message().split("and don't")[0]}
+
+Using the following models:
+
+{nl.join([f"{path+tab+version}" for path, version in versions_models])}
+
 """)

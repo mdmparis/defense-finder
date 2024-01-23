@@ -30,6 +30,7 @@ setup(name='mdmparis-defense-finder',
             ],
         python_requires='>=3.7',
         install_requires=[i for i in [l.strip() for l in open('requirements.txt').read().split('\n')] if i],
+        extras_require=dict(dev=['coverage',]),
         packages=[
             'defense_finder',
             'defense_finder_cli',

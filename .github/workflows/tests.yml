@@ -1,0 +1,41 @@
+name: tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: hmmer
+        version: 1.0
+    - uses: actions/cache@v2
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+    - run: pip install coverage -r requirements.txt
+    - name: Install dependencies
+      run: |
+        pip install .[dev]
+    - name: Install dependencies
+      run: |
+        pip install "git+https://github.com/gem-pasteur/macsyfinder.git"
+    - name: Update DefenseFinder models
+      run: |
+        defense-finder update
+    - name: Run the tests
+      run: |
+        export PYTHONPATH="$(pwd)"
+        coverage run --source . tests/run_test.py
+        coverage report -m
