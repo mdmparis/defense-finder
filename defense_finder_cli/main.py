@@ -123,6 +123,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                     orf_finder = pyrodigal.GeneFinder()
                     orf_finder.train(sseq)
                     dic_genes[sname] = orf_finder.find_genes(sseq)
+                seq.clear()
 
             protein_file_name = os.path.join(outdir, f"{os.path.splitext(os.path.basename(filename))[0]}.prt")
 
