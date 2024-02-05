@@ -28,9 +28,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install .[dev]
-    - name: Install dependencies
-      run: |
-        pip install "git+https://github.com/gem-pasteur/macsyfinder.git"
     - name: Update DefenseFinder models
       run: |
         defense-finder update
