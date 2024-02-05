@@ -7,6 +7,11 @@ def read_md(f):
         text = f.read()
     return text
 
+
+def read_req(req: str):
+    return [i for i in [l.strip() for l in open(req).read().split('\n')] if i]
+
+
 setup(name='mdmparis-defense-finder',
         version='1.2.0',
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
@@ -29,8 +34,8 @@ setup(name='mdmparis-defense-finder',
             'Topic :: Scientific/Engineering :: Bio-Informatics'
             ],
         python_requires='>=3.7',
-        install_requires=[i for i in [l.strip() for l in open('requirements.txt').read().split('\n')] if i],
-        extras_require=dict(dev=['coverage',]),
+        install_requires=read_req('requirements.txt'),
+        extras_require=dict(dev=read_req('requirements-dev.txt')),
         packages=[
             'defense_finder',
             'defense_finder_cli',
