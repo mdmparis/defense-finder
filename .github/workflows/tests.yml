@@ -23,14 +23,8 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
-        key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
-    - run: pip install coverage -r requirements.txt
-    - name: Install dependencies
-      run: |
-        pip install .[dev]
-    - name: Install dependencies
-      run: |
-        pip install "git+https://github.com/gem-pasteur/macsyfinder.git"
+        key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+    - run: pip install .[dev]
     - name: Update DefenseFinder models
       run: |
         defense-finder update
