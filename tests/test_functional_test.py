@@ -25,13 +25,14 @@ def cleaned_lines(file, filename=""):
             for col_id in col_ids_to_del:
                 del row[col_id]
             lines.add('\t'.join(row))
-    return lines
+    return sorted(lines)
 
 
 class Test(TooledTest):
     data_dir = "tests/data"
     exp_dir = "expected_results"
     prd_dir = "produced_results"
+    maxDiff = None
 
     def test_data_content(self):
         data_dirs = []
@@ -75,7 +76,7 @@ class Test(TooledTest):
                 ) as produced:
                     expected_lines = cleaned_lines(expected, filename=file)
                     produced_lines = cleaned_lines(produced, filename=file)
-                    self.assertSetEqual(expected_lines, produced_lines, file)
+                    self.assertEqual(expected_lines, produced_lines, file)
         except AssertionError as ae:
             print(out.getvalue().strip(), err.getvalue().strip())
             raise ae
