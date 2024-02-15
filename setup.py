@@ -13,7 +13,7 @@ def read_req(req: str):
 
 
 setup(name='mdmparis-defense-finder',
-        version='1.2.0',
+        version='1.2.1',
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
         long_description=read_md('README.md'),
         long_description_content_type="text/markdown",
