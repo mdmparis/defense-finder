@@ -10,17 +10,21 @@ def cleaned_lines(file, filename=""):
     reader = csv.reader(file, delimiter='\t')
     col_ids_to_del = []
     header = None
-    if filename.endswith('genes.tsv'):
-        col_names_to_del = [
-            'sys_id',
-        ]
-    else:
-        col_names_to_del = []
+    col_names_to_del = [
+        'sys_id',
+        'used_in',
+    ]
     for row in reader:
         if header is None:
             header = row
             for col_name in col_names_to_del:
-                col_ids_to_del.append(header.index(col_name))
+                try:
+                    col_ids_to_del.append(header.index(col_name))
+                except ValueError:
+                    pass
+
+            col_ids_to_del = list(reversed(sorted(col_ids_to_del)))
+            assert filename
         else:
             for col_id in col_ids_to_del:
                 del row[col_id]
