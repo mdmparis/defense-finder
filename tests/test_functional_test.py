@@ -1,16 +1,17 @@
 import csv
 import os
+from tempfile import TemporaryDirectory
 
 from defense_finder_cli.main import run
 from tests import TooledTest, FakeExitCodeException
 
 
-def cleaned_lines(file, filename=""):
+def cleaned_lines(file, filename="", col_names_to_del=None):
     lines = set()
     reader = csv.reader(file, delimiter='\t')
     col_ids_to_del = []
     header = None
-    col_names_to_del = [
+    col_names_to_del = col_names_to_del or [
         'sys_id',
         'used_in',
     ]
@@ -30,6 +31,75 @@ def cleaned_lines(file, filename=""):
                 del row[col_id]
             lines.add('\t'.join(row))
     return sorted(lines)
+
+
+class TestCleanedLine(TooledTest):
+
+    def test_sorted(self):
+        with TemporaryDirectory() as tempdir:
+            tmp_file_path = os.path.join(tempdir, 'file.csv')
+            with open(tmp_file_path, 'w') as f:
+                f_csv = csv.writer(f, delimiter='\t')
+                f_csv.writerow(["header1", "header2", "header3", "header4"])
+                f_csv.writerow(l_i1 := ["a", "z", "e", "y"])
+                f_csv.writerow(l_i2 := ["b", "a", "t", "56"])
+                f_csv.writerow(l_i3 := ["a", "c", "u", "op"])
+            with open(tmp_file_path, 'r') as f:
+                lines = list(cleaned_lines(f, tmp_file_path))
+                self.assertEqual(len(lines), 3)
+                self.assertEqual(lines[0], '\t'.join(l_i3))
+                self.assertEqual(lines[1], '\t'.join(l_i1))
+                self.assertEqual(lines[2], '\t'.join(l_i2))
+
+    def test_col_removed_1(self):
+        with TemporaryDirectory() as tempdir:
+            tmp_file_path = os.path.join(tempdir, 'file.csv')
+            with open(tmp_file_path, 'w') as f:
+                f_csv = csv.writer(f, delimiter='\t')
+                f_csv.writerow(["header1", "header2", "header3", "header4"])
+                f_csv.writerow(["a", "z", "e", "y"])
+                f_csv.writerow(["b", "a", "t", "56"])
+                f_csv.writerow(["a", "c", "u", "op"])
+            with open(tmp_file_path, 'r') as f:
+                lines = list(
+                    cleaned_lines(
+                        f,
+                        tmp_file_path,
+                        col_names_to_del=[
+                            "header2",
+                        ],
+                    )
+                )
+                self.assertEqual(len(lines), 3)
+                self.assertEqual(lines[0], "a\te\ty")
+                self.assertEqual(lines[1], "a\tu\top")
+                self.assertEqual(lines[2], "b\tt\t56")
+
+    def test_col_removed_2(self):
+        with TemporaryDirectory() as tempdir:
+            tmp_file_path = os.path.join(tempdir, 'file.csv')
+            with open(tmp_file_path, 'w') as f:
+                f_csv = csv.writer(f, delimiter='\t')
+                f_csv.writerow(["header1", "header2", "header3", "header4"])
+                f_csv.writerow(["a", "z", "e", "y"])
+                f_csv.writerow(["b", "a", "t", "56"])
+                f_csv.writerow(["a", "c", "u", "op"])
+            with open(tmp_file_path, 'r') as f:
+                lines = list(
+                    cleaned_lines(
+                        f,
+                        tmp_file_path,
+                        col_names_to_del=[
+                            "header2",
+                            "header4",
+                            "header666",
+                        ],
+                    )
+                )
+                self.assertEqual(len(lines), 3)
+                self.assertEqual(lines[0], 'a\te')
+                self.assertEqual(lines[1], 'a\tu')
+                self.assertEqual(lines[2], 'b\tt')
 
 
 class Test(TooledTest):
@@ -69,9 +139,7 @@ class Test(TooledTest):
 
         try:
             for file in os.listdir(os.path.join(subdir, self.exp_dir)):
-                with self.subTest(
-                    file=file
-                ), open(
+                with self.subTest(file=file), open(
                     os.path.join(subdir, self.exp_dir, file),
                     "r",
                 ) as expected, open(
