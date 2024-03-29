@@ -72,7 +72,7 @@ def update(models_dir=None, force_reinstall: bool = False):
 
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, 
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
-        models_dir: str = None):
+        index_dir: str = None):
     """
     Search for all known anti-phage defense systems in the target fasta file.
     """
