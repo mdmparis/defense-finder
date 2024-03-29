@@ -67,9 +67,12 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='Advanced! Run macsyfinder in no-cut-ga mode. The validity of the genes and systems found is not guaranteed!')
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
+@click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 
 
-def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO"):
+def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, 
+        no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
+        models_dir: str = None):
     """
     Search for all known anti-phage defense systems in the target fasta file.
     """
@@ -144,7 +147,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
             protein_file_name = filename
 
     logger.info("Running DefenseFinder")
-    defense_finder.run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga, loglevel)
+    defense_finder.run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 

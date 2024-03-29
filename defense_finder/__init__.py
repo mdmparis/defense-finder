@@ -4,7 +4,7 @@ import colorlog
 from macsypy.scripts import macsyfinder
 
 
-def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga, loglevel):
+def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga, loglevel, index_dir):
 
     gen_args = ['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
                 '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
@@ -23,6 +23,8 @@ def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut
             msf_cmd.append("--no-cut-ga")
         if models_dir:
             msf_cmd.extend(("--models-dir", models_dir))
+        if index_dir:
+            msf_cmd.extend(("--index-dir", index_dir))
         if loglevel != "DEBUG":
             msf_cmd.append("--mute")
 
