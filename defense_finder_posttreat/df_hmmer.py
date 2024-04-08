@@ -1,52 +1,38 @@
 import os
-import csv
+import pandas as pd
 
-def get_hit_sort_attr(hit):
-    return hit['hit_id']
 
 def remove_duplicates(hmmer_hits):
-    temp_list = []
-    for i in hmmer_hits:
-        if i not in temp_list:
-            temp_list.append(i)
-    return temp_list
+    
+    hmmer_hits=hmmer_hits.sort_values('hit_score',ascending=False).drop_duplicates(['hit_id','gene_name'])
+
+    return hmmer_hits
 
 def export_defense_finder_hmmer_hits(tmp_dir, outdir, filename):
     paths = get_hmmer_paths(tmp_dir)
-    hmmer_hits = []
+    hmmer_hits = pd.DataFrame()
+
     for path in paths:
         d = parse_hmmer_results_file(path)
-        hmmer_hits = hmmer_hits + remove_duplicates(d)
-    sorted_hmmer_hits = sorted(hmmer_hits, key=get_hit_sort_attr)
-    hmmer_hits_list = hmmer_to_list(sorted_hmmer_hits)
-    write_defense_finder_hmmer(hmmer_hits_list, outdir, filename)
+        if d.empty == False:
+            hmmer_hits = pd.concat([hmmer_hits , remove_duplicates(d)])
+    if hmmer_hits.empty == True:
+        hmmer_hits=pd.DataFrame(columns=get_hmmer_keys())
+    
+    hmmer_hits=remove_duplicates(hmmer_hits)
+    hmmer_hits=hmmer_hits.sort_values('hit_score')
+    
+    write_defense_finder_hmmer(hmmer_hits, outdir, filename)
 
-def write_defense_finder_hmmer(hmmer_hits_list, outdir, filename):
-    filepath = os.path.join(outdir,  f'{filename}_defense_finder_hmmer.tsv')
-    with open(filepath, 'w') as defense_finder_hmmer_file:
-        write = csv.writer(defense_finder_hmmer_file, delimiter='\t')
-        write.writerows(hmmer_hits_list)
-        defense_finder_hmmer_file.close()
+def write_defense_finder_hmmer(hmmer_hits, outdir, filename):
+    hmmer_hits.to_csv(outdir+"/"+filename+"_defense_finder_hmmer.tsv",sep='\t',index=False)
 
 def get_hmmer_keys():
     return ['hit_id', 'replicon', 'hit_pos', 'hit_sequence_length', 'gene_name','i_eval','hit_score','hit_profile_cov','hit_seq_cov','hit_begin_match','hit_end_match']
 
 def parse_hmmer_results_file(path):
-    tsv_file = open(path)
-    tsv = csv.reader(tsv_file, delimiter='\t')
-    data = []
-    for row in tsv:
-        if not row[0].startswith('#'):
-            data.append(row)
-    tsv_file.close()
-    out = []
-    for l in data:
-        if not l: continue
-        line_as_dict = {}
-        for idx, val in enumerate(get_hmmer_keys()):
-            line_as_dict[val] = l[idx]
-        out.append(line_as_dict)
-    return out
+    data = pd.read_table(path, sep='\t',comment='#',names=get_hmmer_keys())
+    return data
 
 def get_hmmer_paths(results_dir):
     family_dirs = os.listdir(results_dir)
@@ -59,13 +45,3 @@ def get_hmmer_paths(results_dir):
                     files.append(entry)
     return list(map(lambda i: i.path, files))
 
-
-def hmmer_to_list(hmmer_hits):
-    header = get_hmmer_keys()
-    out = [header]
-    for s in hmmer_hits:
-        l = []
-        for key in header:
-            l.append(s[key])
-        out.append(l)
-    return out

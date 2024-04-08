@@ -1,23 +1,11 @@
 import os
-import csv
 from defense_finder_posttreat import best_solution
 
 def export_defense_finder_genes(defense_finder_genes, outdir, filename):
-    defense_finder_genes_list = defense_finder_genes_to_list(defense_finder_genes)
-    write_defense_finder_genes(defense_finder_genes_list, outdir, filename)
+    defense_finder_genes.to_csv(outdir+'/'+filename+'_defense_finder_genes.tsv',sep='\t',index=False)
 
-def defense_finder_genes_to_list(defense_finder_genes):
-    header = best_solution.get_best_solution_keys()
-    out = [header]
-    for g in defense_finder_genes:
-        l = []
-        for key in header:
-            l.append(g[key])
-        out.append(l)
-    return out
 
 def write_defense_finder_genes(defense_finder_genes_list, outdir, filename):
     filepath = os.path.join(outdir,  f'{filename}_defense_finder_genes.tsv')
-    with open(filepath, 'w') as defense_finder_genes_file:
-        write = csv.writer(defense_finder_genes_file, delimiter='\t')
-        write.writerows(defense_finder_genes_list)
+    defense_finder_genes_list.to_csv('filepath',sep='\t',index=False)
+    
