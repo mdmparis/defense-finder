@@ -4,19 +4,26 @@ import colorlog
 from macsypy.scripts import macsyfinder
 
 
-def run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, nocut_ga, loglevel, index_dir):
+def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir):
+    scripts=[]
 
-    gen_args = ['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
-                '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
-                '--coverage-profile', str(coverage), '--exchangeable-weight', '1']
-    scripts = [[f.format(i=i) for f in gen_args] for i in range(1, 6)]
+    if adf_only == False:
+        gen_args = ['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
+                    '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
+                    '--coverage-profile', str(coverage), '--exchangeable-weight', '1']
+        scripts = [[f.format(i=i) for f in gen_args] for i in range(1, 6)]
+        
+        scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/RM', 'all',
+                        '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
+                        '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
 
-    scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/RM', 'all',
-                     '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
-                     '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
+        scripts.append(['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'CasFinder', 'all',
+                        '--out-dir', os.path.join(tmp_dir, 'Cas'), '-w', str(workers)])
 
-    scripts.append(['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'CasFinder', 'all',
-                     '--out-dir', os.path.join(tmp_dir, 'Cas'), '-w', str(workers)])
+    
+    if (adf == True) or (adf_only == True):
+        scripts.append(['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/ADF', 'all',
+                     '--out-dir', os.path.join(tmp_dir, 'AntiDefenseFinder'), '-w', str(workers)])
 
     for msf_cmd in scripts:
         if nocut_ga:

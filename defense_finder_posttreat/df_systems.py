@@ -7,7 +7,7 @@ def export_defense_finder_systems(defense_finder_genes, outdir, filename):
 
 
 def build_defense_finder_systems(defense_finder_genes):
-    sys=defense_finder_genes.drop_duplicates('sys_id')[['sys_id' , 'type' , 'subtype']]
+    sys=defense_finder_genes.drop_duplicates('sys_id')[['sys_id' , 'type' , 'subtype', 'activity']]
 
     sys_beg=defense_finder_genes.sort_values('hit_pos').drop_duplicates('sys_id').rename({'hit_id' : 'sys_beg'},axis=1)[['sys_id','sys_beg']]
     sys_end=defense_finder_genes.sort_values('hit_pos' , ascending=False).drop_duplicates('sys_id').rename({'hit_id' : 'sys_end'},axis=1)[['sys_id','sys_end']]

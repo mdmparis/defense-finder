@@ -10,11 +10,11 @@ def get(tmp_dir):
         family_path = os.path.join(tmp_dir, family_dir)
         
         if is_file_empty(family_path+'/best_solution.tsv') == False :
-            print(parse_best_solution(family_path).dtypes)
             acc = pd.concat([acc , parse_best_solution(family_path)])
     if acc.empty == True :
         acc = pd.DataFrame(columns=get_best_solution_keys('\t'))
-    print(acc.dtypes)
+
+    
     return format_best_solution(acc)
 
 def is_file_empty(path):
@@ -47,6 +47,11 @@ def get_best_solution_keys(delimiter='\t'):
 def format_best_solution(p):
     p['type'] = p.model_fqn.map(lambda x : x.split('/')[-2])
     p['subtype'] = p.model_fqn.map(lambda x : x.split('/')[-1])
+    
+    p.loc[p.type=='CasFinder','type']='Cas'
+    p.loc[p.model_fqn.str.contains("ADF"),'activity']='Antidefense'
+    p.loc[~p.model_fqn.str.contains("ADF"),'activity']='Defense'
+
     p=p.sort_values('hit_pos')
 
     return(p)
