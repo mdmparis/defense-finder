@@ -22,7 +22,7 @@ def export_defense_finder_hmmer_hits(tmp_dir, outdir, filename):
         hmmer_hits = pd.DataFrame(columns=get_hmmer_keys())
 
     hmmer_hits = remove_duplicates(hmmer_hits)
-    hmmer_hits = hmmer_hits.sort_values('hit_score')
+    hmmer_hits = hmmer_hits.sort_values(['hit_pos', 'hit_score'])
 
     write_defense_finder_hmmer(hmmer_hits, outdir, filename)
 
