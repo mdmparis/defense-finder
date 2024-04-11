@@ -15,6 +15,7 @@ try:
 except AttributeError:
     logging = colorlog.wrappers.logging
 
+from ._version import __version__
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 def cli():
@@ -31,6 +32,12 @@ def cli():
     Tool repository: https://github.com/mdmparis/defense-finder.
     """
     pass
+
+@cli.command()
+def version():
+    """Get the version of DefenseFinder (software)
+    """
+    print(f"Using DefenseFinder version {__version__}")
 
 
 @cli.command()
@@ -68,8 +75,6 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
-
-
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, 
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None):
@@ -146,7 +151,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
         else:
             protein_file_name = filename
 
-    logger.info("Running DefenseFinder")
+    logger.info(f"Running DefenseFinder version {__version__}")
     defense_finder.run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
@@ -167,6 +172,8 @@ Analysis done. Please cite :
 
 Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A., 2022, Nature Communication
 Systematic and quantitative view of the antiviral arsenal of prokaryotes
+
+Using DefenseFinder version {__version__}.
 
 DefenseFinder relies on MacSyFinder : 
 
