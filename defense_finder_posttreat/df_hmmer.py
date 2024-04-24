@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import shutil
 
 
 def remove_duplicates(hmmer_hits):
@@ -14,12 +15,18 @@ def export_defense_finder_hmmer_hits(tmp_dir, outdir, filename):
     paths = get_hmmer_paths(tmp_dir)
     hmmer_hits = pd.DataFrame()
 
-    for path in paths:
-        d = parse_hmmer_results_file(path)
-        if d.empty is False:
-            hmmer_hits = pd.concat([hmmer_hits, remove_duplicates(d)])
-    if hmmer_hits.empty is True:
-        hmmer_hits = pd.DataFrame(columns=get_hmmer_keys())
+    concat = os.path.join(tmp_dir, 'hmm_extracts.concat')
+
+    # concatenate all hmm_extract before reading them
+    with open(concat,'wb') as wfd:
+        for f in paths:
+            with open(f,'rb') as fd:
+                # skip the 5 first lines which are comments
+                for _ in range(5):
+                    _ = fd.readline()
+                shutil.copyfileobj(fd, wfd)
+
+    hmmer_hits = pd.read_table(concat, names=get_hmmer_keys())
 
     hmmer_hits = remove_duplicates(hmmer_hits)
     hmmer_hits = hmmer_hits.sort_values(['hit_pos', 'hit_score'])
@@ -33,11 +40,6 @@ def write_defense_finder_hmmer(hmmer_hits, outdir, filename):
 
 def get_hmmer_keys():
     return ['hit_id', 'replicon', 'hit_pos', 'hit_sequence_length', 'gene_name', 'i_eval', 'hit_score', 'hit_profile_cov', 'hit_seq_cov', 'hit_begin_match', 'hit_end_match']
-
-
-def parse_hmmer_results_file(path):
-    data = pd.read_table(path, sep='\t', comment='#', names=get_hmmer_keys())
-    return data
 
 
 def get_hmmer_paths(results_dir):
