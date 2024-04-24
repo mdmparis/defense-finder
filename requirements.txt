@@ -3,3 +3,4 @@ colorlog==6.3.0a1
 click==8.0.3
 pyhmmer
 pyrodigal
+pandas>=2.2.1
