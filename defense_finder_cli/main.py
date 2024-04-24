@@ -15,7 +15,6 @@ try:
 except AttributeError:
     logging = colorlog.wrappers.logging
 
-from ._version import __version__
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 def cli():
@@ -184,3 +183,9 @@ Using the following models:
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 
 """)
+
+if __name__ == "__main__":
+    __version__ = "Version_from_the_command_line"
+    cli()
+else:
+    from ._version import __version__
