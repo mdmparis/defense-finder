@@ -49,10 +49,12 @@ def format_best_solution(p):
     p['type'] = p.model_fqn.map(lambda x: x.split('/')[-2])
     p['subtype'] = p.model_fqn.map(lambda x: x.split('/')[-1])
     p.loc[p['type'] == 'CasFinder', 'type'] = 'Cas'
-    p = p.sort_values('hit_pos')
-    
-    p.loc[p.model_fqn.str.contains("ADF"),'activity']='Antidefense'
-    p.loc[~p.model_fqn.str.contains("ADF"),'activity']='Defense'
+    p = p.sort_values('hit_pos').reset_index(drop=True)
+    if len(p) > 0:
+        p.loc[p.model_fqn.str.contains("ADF"),'activity']='Antidefense'
+        p.loc[~p.model_fqn.str.contains("ADF"),'activity']='Defense'
+    else:
+        p['activity']=''
     p=p.sort_values('hit_pos')
 
     return p
