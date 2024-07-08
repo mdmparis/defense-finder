@@ -4,7 +4,6 @@ import pandas as pd
 
 def export_defense_finder_systems(defense_finder_genes, outdir, filename):
     systems = build_defense_finder_systems(defense_finder_genes)
-    print(systems)
     systems.to_csv(os.path.join(outdir, filename + '_defense_finder_systems.tsv'), sep='\t', index=False)
 
 
@@ -27,8 +26,3 @@ def build_defense_finder_systems(defense_finder_genes):
         out = pd.DataFrame(columns=['sys_id', 'type', 'subtype', 'activity', 'sys_beg', 'sys_end', 'protein_in_syst', 'genes_count', 'name_of_profiles_in_sys'])
 
     return out[['sys_id', 'type', 'subtype', 'activity', 'sys_beg', 'sys_end', 'protein_in_syst', 'genes_count', 'name_of_profiles_in_sys']]
-
-
-# defense=pd.read_table('./Test_version/ESCO001.0722.00768.C001_defense_finder_genes.tsv',sep='\t')
-# export_defense_finder_systems(defense,'./Test_version',
-#                               'Test.tsv')
