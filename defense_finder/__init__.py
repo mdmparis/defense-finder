@@ -31,6 +31,8 @@ def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, mo
         if models_dir:
             msf_cmd.extend(("--models-dir", models_dir))
         if index_dir:
+            if not os.path.exists(index_dir):
+                os.makedirs(index_dir)
             msf_cmd.extend(("--index-dir", index_dir))
         if loglevel != "DEBUG":
             msf_cmd.append("--mute")

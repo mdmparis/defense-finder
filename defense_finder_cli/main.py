@@ -32,6 +32,12 @@ def cli():
     """
     pass
 
+@cli.command()
+def version():
+    """Get the version of DefenseFinder (software)
+    """
+    print(f"Using DefenseFinder version {__version__}")
+
 
 @cli.command()
 @click.option('--models-dir', 'models_dir', required=False, help='Specify a directory containing your models.')
@@ -150,7 +156,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
         else:
             protein_file_name = filename
 
-    logger.info("Running DefenseFinder")
+    logger.info(f"Running DefenseFinder version {__version__}")
     defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
@@ -172,6 +178,8 @@ Analysis done. Please cite :
 Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A., 2022, Nature Communication
 Systematic and quantitative view of the antiviral arsenal of prokaryotes
 
+Using DefenseFinder version {__version__}.
+
 DefenseFinder relies on MacSyFinder : 
 
 {get_version_message().split("and don't")[0]}
@@ -181,3 +189,9 @@ Using the following models:
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 
 """)
+
+if __name__ == "__main__":
+    __version__ = "Version_from_the_command_line"
+    cli()
+else:
+    from ._version import __version__

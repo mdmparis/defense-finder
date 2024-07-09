@@ -11,9 +11,10 @@ def read_md(f):
 def read_req(req: str):
     return [i for i in [l.strip() for l in open(req).read().split('\n')] if i]
 
+exec(open('defense_finder_cli/_version.py').read())
 
 setup(name='mdmparis-defense-finder',
-        version='1.2.2',
+        version=__version__, # from 'defense_finder_cli/_version.py'
         description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
         long_description=read_md('README.md'),
         long_description_content_type="text/markdown",

@@ -42,11 +42,6 @@ def get_hmmer_keys():
     return ['hit_id', 'replicon', 'hit_pos', 'hit_sequence_length', 'gene_name', 'i_eval', 'hit_score', 'hit_profile_cov', 'hit_seq_cov', 'hit_begin_match', 'hit_end_match']
 
 
-def parse_hmmer_results_file(path):
-    data = pd.read_table(path, sep='\t', comment='#', names=get_hmmer_keys())
-    return data
-
-
 def get_hmmer_paths(results_dir):
     family_dirs = os.listdir(results_dir)
     files = []

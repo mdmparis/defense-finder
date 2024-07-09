@@ -20,9 +20,9 @@ A [Github action](https://github.com/mdmparis/defense-finder/actions) is setup t
 Note that you don't need to publish defense-finder everytime the models change: only changes in this repository are relevant.
 
 Here are the steps to follow in order to publish defense-finder:
-- find the current version in the `setup` function of `setup.py`.
+- find the current version in `defense_finder_cli/_version.py`
 - get a new version number according to [semantic versionning](https://semver.org/)
-- update the version un `setup.py`
+- update the version un `defense_finder_cli/_version.py`
 - commit this change, and tag the commit with `git tag -a v<your version number> -m '<your version number> <an optional message>'`
 - push your commits to master
 - run `git push origin v<your version>` to sync the tags
