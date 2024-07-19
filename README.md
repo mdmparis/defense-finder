@@ -8,11 +8,27 @@ If you are using DefenseFinder please cite
 - "Systematic and quantitative view of the antiviral arsenal of prokaryotes" [Nature Communication](https://www.nature.com/articles/s41467-022-30269-9.pdf), 2022, _Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A._
 - "MacSyFinder: A Program to Mine Genomes for Molecular Systems with an Application to CRISPR-Cas Systems." PloS one 2014
   _Abby S., Néron B.,Ménager H., Touchon M. Rocha EPC._
+- "CRISPRCasFinder, an update of CRISRFinder, includes a portable version, enhanced performance and integrates search for Cas proteins." Nucleic Acids Research 2018 Couvin D. et al. 
 
 ## DefenseFinder Models
 
 This repository contains DefenseFinder a tool allowing for a systematic search of anti-phage systems.
-The DefenseFinder models based on MacSyFinder architecture can be [here](https://github.com/mdmparis/defense-finder-models)
+The DefenseFinder models based on MacSyFinder architecture can be [here](https://github.com/mdmparis/defense-finder-models).
+
+The CRISPR-Cas models used in DefenseFinder come from the macsy models of CasFinder available [here](https://github.com/macsy-models/CasFinder).
+
+## DefenseFinder website
+
+### More information on defense systems on the DefenseFinder
+
+To make DefenseFinder results more intuitive, we created a Wiki of defense systems to gather information on all the defense systems.
+The defense wiki is available [here](https://defensefinder.mdmlab.fr/wiki/).
+
+This website gather information on all defense systems detected by DefenseFinder as well as precomputed results and predicted structure of defense systems.
+
+### DefenseFinder webserver
+
+DefenseFinder is available as a [webservice](https://defensefinder.mdmlab.fr/).
 
 # Installing DefenseFinder command-line interface
 	
@@ -238,4 +254,4 @@ done
 ```
 
 ---
-For questions: you can contact aude.bernheim@inserm.fr
+For questions: you can contact aude.bernheim@pasteur.fr

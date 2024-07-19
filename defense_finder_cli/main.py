@@ -32,6 +32,12 @@ def cli():
     """
     pass
 
+@cli.command()
+def version():
+    """Get the version of DefenseFinder (software)
+    """
+    print(f"Using DefenseFinder version {__version__}")
+
 
 @cli.command()
 @click.option('--models-dir', 'models_dir', required=False, help='Specify a directory containing your models.')
@@ -65,11 +71,18 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('--models-dir', 'models_dir', required=False, help='Specify a directory containing your models.')
 @click.option('--no-cut-ga', 'no_cut_ga', is_flag=True, default=False,
               help='Advanced! Run macsyfinder in no-cut-ga mode. The validity of the genes and systems found is not guaranteed!')
+@click.option('-a','--antidefensefinder', 'adf', is_flag=True, default=False,
+              help='Also run AntiDefenseFinder models to find antidefense systems.')
+@click.option("-A",'--antidefensefinder-only', 'adf_only', is_flag=True, default=False,
+              help='Run only AntiDefenseFinder for antidefense system and not DefenseFinder')
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
+@click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 
 
-def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO"):
+def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, adf: bool,
+        adf_only: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
+        index_dir: str = None):
     """
     Search for all known anti-phage defense systems in the target fasta file.
     """
@@ -143,8 +156,8 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
         else:
             protein_file_name = filename
 
-    logger.info("Running DefenseFinder")
-    defense_finder.run(protein_file_name, dbtype, workers, coverage, tmp_dir, models_dir, no_cut_ga, loglevel)
+    logger.info(f"Running DefenseFinder version {__version__}")
+    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
@@ -165,6 +178,8 @@ Analysis done. Please cite :
 Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A., 2022, Nature Communication
 Systematic and quantitative view of the antiviral arsenal of prokaryotes
 
+Using DefenseFinder version {__version__}.
+
 DefenseFinder relies on MacSyFinder : 
 
 {get_version_message().split("and don't")[0]}
@@ -174,3 +189,9 @@ Using the following models:
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 
 """)
+
+if __name__ == "__main__":
+    __version__ = "Version_from_the_command_line"
+    cli()
+else:
+    from ._version import __version__
