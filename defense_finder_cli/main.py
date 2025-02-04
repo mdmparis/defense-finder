@@ -156,7 +156,6 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
         else:
             protein_file_name = filename
-    logger.info(models_dir)
     models_outdated = False
     versions_models = []
 
