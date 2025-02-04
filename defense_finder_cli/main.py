@@ -6,6 +6,7 @@ import defense_finder_updater
 import defense_finder_posttreat
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
+import sys
 from macsypy.scripts.macsydata import get_version_message
 from macsypy.scripts.macsydata import _find_all_installed_packages
 
@@ -155,25 +156,55 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
         else:
             protein_file_name = filename
-
-    logger.info(f"Running DefenseFinder version {__version__}")
-    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
-    logger.info("Post-treatment of the data")
-    defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
-
-    if not preserve_raw:
-        shutil.rmtree(tmp_dir)
-
-    models = _find_all_installed_packages().models()
+    logger.info(models_dir)
+    models_outdated = False
     versions_models = []
-    for m in models:
-        if "cas" in m.path.lower() or "defense-finder" in m.path.lower():
-            versions_models.append([m.path, m.version])
-    nl = "\n"
-    tab = "\t"
 
-    logger.info(f"""\
-Analysis done. Please cite :
+    if models_dir is None:
+        models = _find_all_installed_packages().models()
+        for m in models:
+            if "CasFinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
+                versions_models.append([m.path, m.version])
+                if  ("defense-finder" in m.path.lower()) & (int(m.version.split('.')[0])<2):
+                    models_outdated = True
+                    logger.info(f"Please update your models to defense-finder-models >= v2.0.0")
+                    sys.exit(1)
+
+    else:
+        all_models = os.listdir(models_dir)
+        for model_name in all_models:
+            if "CasFinder" in model_name or "defense-finder-models" in model_name:
+                metadata_file = open(os.path.join(models_dir, model_name, "metadata.yml"), 'r')
+                version = metadata_file.read()
+                version = version.split('vers: ')[1].split('\n')[0]
+                versions_models.append([model_name, version])
+                if ("defense-finder-models" in model_name) & (int(version.split('.')[0])<2) :
+                    models_outdated = True
+                    logger.info(f"Please update your models to defense-finder-models >= v2.0.0")
+                    sys.exit(1)
+    if models_outdated  ==  False:
+        logger.info(f"Running DefenseFinder version {__version__}")
+        nl = '\n'
+        tab = "\t"
+
+        logger.info(f"""Using the following models:
+            {nl.join([f"{path+tab+version}" for path, version in versions_models])}
+            """)
+
+        defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
+        logger.info("Post-treatment of the data")
+        defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
+
+        if not preserve_raw:
+            shutil.rmtree(tmp_dir)
+
+
+
+        nl = "\n"
+        tab = "\t"
+
+        logger.info(f"""\
+    Analysis done. Please cite :
 
 Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A., 2022, Nature Communication
 Systematic and quantitative view of the antiviral arsenal of prokaryotes
@@ -187,7 +218,6 @@ DefenseFinder relies on MacSyFinder :
 Using the following models:
 
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
-
 """)
 
 if __name__ == "__main__":
