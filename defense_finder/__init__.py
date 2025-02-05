@@ -2,6 +2,9 @@ import os
 import colorlog
 
 from macsypy.scripts import macsyfinder
+from warnings import simplefilter
+import pandas as pd
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 
 def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir):
