@@ -186,7 +186,6 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
         else:
             protein_file_name = filename
-    models_outdated = False
     versions_models = []
 
     models = _find_all_installed_packages(models_dir=models_dir).models()
@@ -195,8 +194,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
             versions_models.append([m.path, m.version])
             if  ("defense-finder" in m.path.lower()):
                 last_version_df = check_last_version_models()
-                if m.version != last_version_df:
-                    models_outdated = True
+                if m.version != last_version_df.strip():
                     models_main_ver = int(m.version.split(".")[0])
                     logger.warning(f"Be careful, this is not the latest version of the model, last version = {last_version_df}")
                     logger.warning(">>> Run `defense-finder update` to be up to date")
