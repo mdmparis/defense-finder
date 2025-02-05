@@ -7,9 +7,10 @@ from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
 import sys
 
-from warnings import catch_warnings
+from warnings import simplefilter, catch_warnings
 
-with catch_warnings(action="ignore"):
+with catch_warnings():
+    simplefilter("ignore")
     import defense_finder_updater
 
 from macsypy.scripts.macsydata import get_version_message
