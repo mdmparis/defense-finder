@@ -6,7 +6,12 @@ import defense_finder_posttreat
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
 import sys
-import defense_finder_updater
+
+from warnings import catch_warnings
+
+with catch_warnings(action="ignore"):
+    import defense_finder_updater
+
 from macsypy.scripts.macsydata import get_version_message
 from macsypy.scripts.macsydata import _find_all_installed_packages
 from macsypy.scripts.macsydata import RemoteModelIndex
@@ -37,7 +42,7 @@ def check_last_version_models():
         all_versions = remote.list_package_vers(dfmods)
         last_version = all_versions[0]
         with open(file_lastver, "w") as file_lastver_file:
-            file_lastver_file.write(f"{now.strftime('%Y-%m-%d')}___{version}")
+            file_lastver_file.write(f"{now.strftime('%Y-%m-%d')}___{last_version}")
 
     return last_version
 
