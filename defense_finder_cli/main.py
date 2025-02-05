@@ -2,14 +2,15 @@ import os
 import shutil
 import click
 import defense_finder
-import defense_finder_updater
 import defense_finder_posttreat
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
 import sys
+import defense_finder_updater
 from macsypy.scripts.macsydata import get_version_message
 from macsypy.scripts.macsydata import _find_all_installed_packages
 from macsypy.scripts.macsydata import RemoteModelIndex
+import datetime
 
 import colorlog
 try:
@@ -19,11 +20,25 @@ except AttributeError:
 
 
 def check_last_version_models():
-    remote = RemoteModelIndex(org="mdmparis")
-    packages = remote.list_packages()
-    dfmods = [pack for pack in packages if pack == "defense-finder-models"][0]
-    all_versions = remote.list_package_vers(dfmods)
-    last_version = all_versions[0]
+    file_lastver = os.path.join(os.environ["HOME"], ".defensefinder_model_lastversion")
+    if os.path.isfile(file_lastver):
+        with open(file_lastver, "r") as file_lastver_file:
+            time_last_ver, last_version = file_lastver_file.read().split()
+            time_last_ver = datetime.datetime.strptime(time_last_ver, '%Y-%m-%d')
+    else:
+        time_last_ver = datetime.datetime(1000, 1, 1)
+
+    now = datetime.datetime.now()
+
+    if time_last_ver < now - datetime.timedelta(days = 30):
+        remote = RemoteModelIndex(org="mdmparis")
+        packages = remote.list_packages()
+        dfmods = [pack for pack in packages if pack == "defense-finder-models"][0]
+        all_versions = remote.list_package_vers(dfmods)
+        last_version = all_versions[0]
+        with open(file_lastver, "w") as file_lastver_file:
+            file_lastver_file.write(f"{now.strftime('%Y-%m-%d')}___{version}")
+
     return last_version
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
