@@ -162,12 +162,11 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     if models_dir is None:
         models = _find_all_installed_packages().models()
         for m in models:
-            if "CasFinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
+            if "casfinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
                 versions_models.append([m.path, m.version])
                 if  ("defense-finder" in m.path.lower()) & (int(m.version.split('.')[0])<2):
                     models_outdated = True
-                    logger.info(f"Please update your models to defense-finder-models >= v2.0.0")
-                    sys.exit(1)
+                    logger.warning(f"Be careful, this is not the latest version of the model")
 
     else:
         all_models = os.listdir(models_dir)
@@ -179,31 +178,29 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                 versions_models.append([model_name, version])
                 if ("defense-finder-models" in model_name) & (int(version.split('.')[0])<2) :
                     models_outdated = True
-                    logger.info(f"Please update your models to defense-finder-models >= v2.0.0")
-                    sys.exit(1)
-    if models_outdated  ==  False:
-        logger.info(f"Running DefenseFinder version {__version__}")
-        nl = '\n'
-        tab = "\t"
+                    logger.warning(f"Be careful, this is not the latest version of the model")
+    logger.info(f"Running DefenseFinder version {__version__}")
+    nl = '\n'
+    tab = "\t"
 
-        logger.info(f"""Using the following models:
-            {nl.join([f"{path+tab+version}" for path, version in versions_models])}
-            """)
+    logger.info(f"""Using the following models:
+        {nl.join([f"{path+tab+version}" for path, version in versions_models])}
+        """)
 
-        defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
-        logger.info("Post-treatment of the data")
-        defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
+    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_outdated)
+    logger.info("Post-treatment of the data")
+    defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
-        if not preserve_raw:
-            shutil.rmtree(tmp_dir)
+    if not preserve_raw:
+        shutil.rmtree(tmp_dir)
 
 
 
-        nl = "\n"
-        tab = "\t"
+    nl = "\n"
+    tab = "\t"
 
-        logger.info(f"""\
-    Analysis done. Please cite :
+    logger.info(f"""\
+Analysis done. Please cite :
 
 Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A., 2022, Nature Communication
 Systematic and quantitative view of the antiviral arsenal of prokaryotes

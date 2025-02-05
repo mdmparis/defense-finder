@@ -7,14 +7,19 @@ import pandas as pd
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 
-def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir):
+def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_outdated):
     scripts=[]
 
     if adf_only == False:
-        scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/DefenseFinder', 'all',
-                        '--out-dir', os.path.join(tmp_dir, 'DefenseFinder'), '--w', str(workers),
-                        '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
-        
+        if models_outdated == False:
+            scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/DefenseFinder', 'all',
+                            '--out-dir', os.path.join(tmp_dir, 'DefenseFinder'), '--w', str(workers),
+                            '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
+        else:
+            gen_args = ['--db-type', dbtype, '--sequence-db', protein_file_name, '--models', 'defense-finder-models/DefenseFinder_{i}', 'all',
+                    '--out-dir', os.path.join(tmp_dir, 'DF_{i}'), '--w', str(workers),
+                    '--coverage-profile', str(coverage), '--exchangeable-weight', '1']
+            scripts = [[f.format(i=i) for f in gen_args] for i in range(1, 6)]
         scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/RM', 'all',
                         '--out-dir', os.path.join(tmp_dir, 'RM'), '--w', str(workers),
                         '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
