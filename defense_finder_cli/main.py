@@ -23,7 +23,7 @@ def check_last_version_models():
     file_lastver = os.path.join(os.environ["HOME"], ".defensefinder_model_lastversion")
     if os.path.isfile(file_lastver):
         with open(file_lastver, "r") as file_lastver_file:
-            time_last_ver, last_version = file_lastver_file.read().split()
+            time_last_ver, last_version = file_lastver_file.read().split("___")
             time_last_ver = datetime.datetime.strptime(time_last_ver, '%Y-%m-%d')
     else:
         time_last_ver = datetime.datetime(1000, 1, 1)
