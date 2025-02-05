@@ -190,6 +190,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     versions_models = []
 
     models = _find_all_installed_packages(models_dir=models_dir).models()
+    modelok = False
     for m in models:
         if "casfinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
             versions_models.append([m.path, m.version])
@@ -202,6 +203,11 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                 else:
                     logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")
                     models_main_ver = int(m.version.split(".")[0])
+
+    if len(versions_models) != 2:
+        logger.error(f"Uncomplete defense-finder models, we found only {' '.join([vm[0] for vm in versions_models])}. Cas and defense-finder models are required")
+        logger.error(f">>> Run `defense-finder update` to download the models")
+        sys.exit(1)
 
     logger.info(f"Running DefenseFinder version {__version__}")
     nl = '\n'
