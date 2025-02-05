@@ -7,11 +7,11 @@ import pandas as pd
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 
-def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_outdated):
+def run(protein_file_name, dbtype, workers, coverage, adf, adf_only, tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver):
     scripts=[]
 
     if adf_only == False:
-        if models_outdated == False:
+        if models_main_ver >= 2:
             scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/DefenseFinder', 'all',
                             '--out-dir', os.path.join(tmp_dir, 'DefenseFinder'), '--w', str(workers),
                             '--coverage-profile', str(coverage), '--exchangeable-weight', '1'])
