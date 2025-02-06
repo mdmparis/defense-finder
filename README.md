@@ -204,25 +204,34 @@ Usage: defense-finder run [OPTIONS] FILE
   Search for all known anti-phage defense systems in the target fasta file.
 
 Options:
-  -o, --out-dir TEXT     The target directory where to store the results.
-                         Defaults to the current directory.
-  -w, --workers INTEGER  The workers count. By default all cores will be used
-                         (w=0).
-  -c, --coverage FLOAT   Minimal percentage of coverage for each profiles. By
-                         default set to 0.4
-  --db-type TEXT         The macsyfinder --db-type option. Run macsyfinder
-                         --help for more details. Possible values are
-                         ordered_replicon, gembase, unordered, defaults to
-                         ordered_replicon.
-  --preserve-raw         Preserve raw MacsyFinder outputs alongside Defense
-                         Finder results inside the output directory.
-  --models-dir TEXT      Specify a directory containing your models.
-  --no-cut-ga            Advanced! Run macsyfinder in no-cut-ga mode. The
-                         validity of the genes and systems found is not
-                         guaranteed!
-  --log-level TEXT       set the logging level among DEBUG, [INFO], WARNING,
-                         ERROR, CRITICAL
-  -h, --help             Show this message and exit.
+  -o, --out-dir TEXT            The target directory where to store the
+                                results. Defaults to the current directory.
+  -w, --workers INTEGER         The workers count. By default all cores will
+                                be used (w=0).
+  -c, --coverage FLOAT          Minimal percentage of coverage for each
+                                profiles. By default set to 0.4
+  --db-type TEXT                The macsyfinder --db-type option. Run
+                                macsyfinder --help for more details. Possible
+                                values are               ordered_replicon,
+                                gembase, unordered, defaults to
+                                ordered_replicon.
+  --preserve-raw                Preserve raw MacsyFinder outputs alongside
+                                Defense Finder results inside the output
+                                directory.
+  --models-dir TEXT             Specify a directory containing your models.
+  --no-cut-ga                   Advanced! Run macsyfinder in no-cut-ga mode.
+                                The validity of the genes and systems found is
+                                not guaranteed!
+  -a, --antidefensefinder       Also run AntiDefenseFinder models to find
+                                antidefense systems.
+  -A, --antidefensefinder-only  Run only AntiDefenseFinder for antidefense
+                                system and not DefenseFinder
+  --log-level TEXT              set the logging level among DEBUG, [INFO],
+                                WARNING, ERROR, CRITICAL
+  --index-dir TEXT              Specify a directory to write the index files
+                                required by macsyfinder when the input file is
+                                in a read-only folder
+  -h, --help                    Show this message and exit.
 ```
 
 ## Development
@@ -254,4 +263,4 @@ done
 ```
 
 ---
-For questions: you can contact aude.bernheim@pasteur.fr
+For questions: you can contact aude.bernheim@pasteur.fr, ftesson@pasteur.fr, or jcury@pasteur.fr
