@@ -73,6 +73,9 @@ To retrieve it run:
 defense-finder update
 ```
 
+**Conda/Mamba** installation is not linked to this repo and is publish by other than us, so there might be some delays between a release here on pip and on conda.
+***We recommand to install with pip*** when possible. 
+
 ### Updating DefenseFinder
 When you have not used DefenseFinder in the last days, make sure you have the latest versions of the models.
 To verify and downloaded if necessary the latest models run:
