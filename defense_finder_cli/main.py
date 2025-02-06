@@ -2,12 +2,21 @@ import os
 import shutil
 import click
 import defense_finder
-import defense_finder_updater
 import defense_finder_posttreat
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
+import sys
+
+from warnings import simplefilter, catch_warnings
+
+with catch_warnings():
+    simplefilter("ignore")
+    import defense_finder_updater
+
 from macsypy.scripts.macsydata import get_version_message
 from macsypy.scripts.macsydata import _find_all_installed_packages
+from macsypy.scripts.macsydata import RemoteModelIndex
+import datetime
 
 import colorlog
 try:
@@ -15,6 +24,28 @@ try:
 except AttributeError:
     logging = colorlog.wrappers.logging
 
+
+def check_last_version_models():
+    file_lastver = os.path.join(os.environ["HOME"], ".defensefinder_model_lastversion")
+    if os.path.isfile(file_lastver):
+        with open(file_lastver, "r") as file_lastver_file:
+            time_last_ver, last_version = file_lastver_file.read().split("___")
+            time_last_ver = datetime.datetime.strptime(time_last_ver, '%Y-%m-%d')
+    else:
+        time_last_ver = datetime.datetime(1000, 1, 1)
+
+    now = datetime.datetime.now()
+
+    if time_last_ver < now - datetime.timedelta(days = 30):
+        remote = RemoteModelIndex(org="mdmparis")
+        packages = remote.list_packages()
+        dfmods = [pack for pack in packages if pack == "defense-finder-models"][0]
+        all_versions = remote.list_package_vers(dfmods)
+        last_version = all_versions[0]
+        with open(file_lastver, "w") as file_lastver_file:
+            file_lastver_file.write(f"{now.strftime('%Y-%m-%d')}___{last_version}")
+
+    return last_version
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
 def cli():
@@ -55,6 +86,8 @@ def update(models_dir=None, force_reinstall: bool = False):
     defense_finder_updater.update_models(models_dir, force_reinstall)
 
 
+
+
 @cli.command()
 @click.argument('file', type=click.Path(exists=True))
 @click.option('-o', '--out-dir', 'outdir',
@@ -78,7 +111,6 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
-
 
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, adf: bool,
         adf_only: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
@@ -155,20 +187,46 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 
         else:
             protein_file_name = filename
+    versions_models = []
+
+    models = _find_all_installed_packages(models_dir=models_dir).models()
+    modelok = False
+    for m in models:
+        if "casfinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
+            versions_models.append([m.path, m.version])
+            if  ("defense-finder" in m.path.lower()):
+                last_version_df = check_last_version_models()
+                if m.version != last_version_df.strip():
+                    models_main_ver = int(m.version.split(".")[0])
+                    logger.warning(f"Be careful, this is not the latest version of the model, last version = {last_version_df}")
+                    logger.warning(">>> Run `defense-finder update` to be up to date")
+                else:
+                    logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")
+                    models_main_ver = int(m.version.split(".")[0])
+
+    if len(versions_models) != 2:
+        logger.error(f"Uncomplete defense-finder models, we found only {' '.join([vm[0] for vm in versions_models])}. Cas and defense-finder models are required")
+        logger.error(f">>> Run `defense-finder update` to download the models")
+        sys.exit(1)
 
     logger.info(f"Running DefenseFinder version {__version__}")
-    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir)
+    nl = '\n'
+    tab = "\t"
+
+    logger.info(f"""Using the following models:
+
+{nl.join([f"{path+tab+version}" for path, version in versions_models])}
+""")
+
+    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
     if not preserve_raw:
         shutil.rmtree(tmp_dir)
 
-    models = _find_all_installed_packages().models()
-    versions_models = []
-    for m in models:
-        if "cas" in m.path.lower() or "defense-finder" in m.path.lower():
-            versions_models.append([m.path, m.version])
+
+
     nl = "\n"
     tab = "\t"
 
@@ -187,7 +245,6 @@ DefenseFinder relies on MacSyFinder :
 Using the following models:
 
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
-
 """)
 
 if __name__ == "__main__":
