@@ -111,10 +111,14 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
+@click.option('--model-version-check/--no-model-version-check', is_flag=True, default=True,
+              help='Enable/Disable model versio check')
+
+
 
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, adf: bool,
         adf_only: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
-        index_dir: str = None):
+        index_dir: str = None, model_version_check: bool = True):
     """
     Search for all known anti-phage defense systems in the target fasta file.
     """
@@ -194,7 +198,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     for m in models:
         if "casfinder" in m.path.lower() or "defense-finder-models" in m.path.lower():
             versions_models.append([m.path, m.version])
-            if  ("defense-finder" in m.path.lower()):
+            if model_version_check and "defense-finder" in m.path.lower():
                 last_version_df = check_last_version_models()
                 if m.version != last_version_df.strip():
                     models_main_ver = int(m.version.split(".")[0])
