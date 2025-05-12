@@ -112,7 +112,7 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 @click.option('--model-version-check/--no-model-version-check', is_flag=True, default=True,
-              help='Enable/Disable model versio check')
+              help='Enable/Disable model version check')
 
 
 
