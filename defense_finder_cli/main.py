@@ -108,14 +108,20 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='Also run AntiDefenseFinder models to find antidefense systems.')
 @click.option("-A",'--antidefensefinder-only', 'adf_only', is_flag=True, default=False,
               help='Run only AntiDefenseFinder for antidefense system and not DefenseFinder')
+@click.option('-e','--esmdf', 'esmdf', is_flag=True, default=False,
+              help='Also run ESM-DefenseFinder to predict potentially new defense genes [use at your own risk].')
+@click.option("-E",'--esmdf-only', 'esmdf_only', is_flag=True, default=False,
+              help='Run only ESM-DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 @click.option('--skip-model-version-check', is_flag=True, default=False,
               help='Skip model version check')
 
-def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool, adf: bool,
-        adf_only: bool, no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
+def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool,
+        adf: bool, adf_only: bool,
+        esmdf: bool, esmdf_only: bool,
+        no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None, skip_model_version_check: bool = False):
     """
     Search for all known anti-phage defense systems in the target fasta file.
@@ -206,7 +212,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                         logger.warning(f"Be careful, this is not the latest version of the model, last version = {last_version_df}")
                         logger.warning(">>> Run `defense-finder update` to be up to date")
                     else:
-                        logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")                    
+                        logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")
 
     if len(versions_models) != 2:
         logger.error(f"Uncomplete defense-finder models, we found only {' '.join([vm[0] for vm in versions_models])}. Cas and defense-finder models are required")
@@ -222,7 +228,10 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 """)
 
-    defense_finder.run(protein_file_name, dbtype, workers, coverage, adf,adf_only, tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver)
+    defense_finder.run(protein_file_name, dbtype, workers, coverage,
+                       adf, adf_only,
+                       esmdf, esmdf_only,
+                       tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver)
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
