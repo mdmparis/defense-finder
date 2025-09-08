@@ -234,9 +234,9 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                        esmdf, esmdf_only,
                        tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
                        base_outfile)
-
-    logger.info("Post-treatment of the data")
-    defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
+    if not esmdf_only:
+        logger.info("Post-treatment of the data")
+        defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
     if not preserve_raw:
         shutil.rmtree(tmp_dir)

@@ -102,6 +102,8 @@ def run(protein_file_name, dbtype, workers, coverage,
             current_batch_name = []
             i = 1
             nbatch = 0
+            device_info = f"{torch.get_num_threads()} cpus" if device == "cpu" else torch.cuda.get_device_name()
+            logger.info(f"Predicting with ESM-DF on {protein_file_name}, running on {device_info}")
             while sf.readinto(seq):
                 # if i % 2: # batch size=2
                 #     allseq.append([])
@@ -113,14 +115,14 @@ def run(protein_file_name, dbtype, workers, coverage,
                 current_batch.append(sseq)
                 current_batch_name.append(sname)
                 seq.clear()
-
+                
                 if not i % 10: # batch size
                     nbatch += 1
-                    logger.info(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
+                    logger.debug(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
                     batch = tokenizer(current_batch, padding=True, return_tensors="pt")
                     input_ids = batch['input_ids']
                     attention_mask = batch['attention_mask']
-                    logger.info(f"Batch dimension : {input_ids.shape}")
+                    logger.debug(f"Batch dimension : {input_ids.shape}")
                     outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
                     #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
                     logits = outputs.logits.detach().cpu().numpy()
@@ -128,14 +130,15 @@ def run(protein_file_name, dbtype, workers, coverage,
                     tmp_df = pd.concat([pd.Series(current_batch_name, name="protID"),
                                         pd.DataFrame(logits, columns=["notDef", "Def"])], axis=1)
                     df_res = pd.concat([df_res, tmp_df])
-                    logger.info(f"df_res dimension : {df_res.shape}")
+                    logger.debug(f"df_res dimension : {df_res.shape}")
                     #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
                     # reinit batch
                     current_batch = []
                     current_batch_name = []
                 i += 1
+        logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
 
          # Use 4/5 categories of likeliness
         logit_probable = 1 # to adjust after final training
         df_res["probable_def_gene"] = df_res.Def > logit_probable
-        df_res[["protID", "Def", "probable_def_gene"]].to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False)
+        df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False)
