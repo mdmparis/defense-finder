@@ -16,7 +16,8 @@ df_dir = os.path.dirname(os.path.abspath(__file__))
 def run(protein_file_name, dbtype, workers, coverage,
         adf, adf_only,
         esmdf, esmdf_only,
-        tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver):
+        tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver,
+        base_outfile):
 
     scripts = []
 
@@ -86,8 +87,7 @@ def run(protein_file_name, dbtype, workers, coverage,
 
         # Set to evaluation mode
         _ = model.eval()
-        #
-        # model.bfloat16()
+        #model.bfloat16()
 
         tokenizer_path = os.path.join(df_dir, "ESM_DF", "tokenizer", "ESM2_tokenizer")
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
@@ -114,7 +114,7 @@ def run(protein_file_name, dbtype, workers, coverage,
                 current_batch_name.append(sname)
                 seq.clear()
 
-                if not i % 100: # batch size
+                if not i % 10: # batch size
                     nbatch += 1
                     logger.info(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
                     batch = tokenizer(current_batch, padding=True, return_tensors="pt")
@@ -124,12 +124,18 @@ def run(protein_file_name, dbtype, workers, coverage,
                     outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
                     #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
                     logits = outputs.logits.detach().cpu().numpy()
+                    #sm_def = torch.softmax(logits, 1).T[1]
                     tmp_df = pd.concat([pd.Series(current_batch_name, name="protID"),
                                         pd.DataFrame(logits, columns=["notDef", "Def"])], axis=1)
                     df_res = pd.concat([df_res, tmp_df])
                     logger.info(f"df_res dimension : {df_res.shape}")
-                    df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a")
+                    #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
                     # reinit batch
                     current_batch = []
                     current_batch_name = []
                 i += 1
+
+         # Use 4/5 categories of likeliness
+        logit_probable = 1 # to adjust after final training
+        df_res["probable_def_gene"] = df_res.Def > logit_probable
+        df_res[["protID", "Def", "probable_def_gene"]].to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False)

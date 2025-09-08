@@ -228,10 +228,13 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
 {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 """)
 
+    base_outfile = os.path.join(outdir, os.path.splitext(os.path.basename(filename))[0])
     defense_finder.run(protein_file_name, dbtype, workers, coverage,
                        adf, adf_only,
                        esmdf, esmdf_only,
-                       tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver)
+                       tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
+                       base_outfile)
+
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
