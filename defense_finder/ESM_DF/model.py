@@ -1,13 +1,17 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import numpy as np
-from transformers import EsmModel
+from transformers import EsmModel, configuration_utils
 from peft import get_peft_model, LoraConfig, TaskType
 from torchmetrics import AUROC
-import torch.nn.functional as F
 # from metrics.macro_avg_metric import macro_average_precision_pos_vs_single_neg, macro_auroc_pos_vs_single_neg
 from typing import Optional
+
+import colorlog
+
+logger = colorlog.getLogger("configuration_utils")
+logger.setLevel("INFO")
+
 
 
 id2label = {
@@ -98,6 +102,8 @@ class EsmForSequenceClassificationLightning(pl.LightningModule):
         scheduler: dict = None,
         max_epochs: int = 10,
         ):
+        logger = colorlog.getLogger("configuration_utils")
+        logger.setLevel("INFO")
 
         super().__init__()
         self.save_hyperparameters()
@@ -118,8 +124,8 @@ class EsmForSequenceClassificationLightning(pl.LightningModule):
         self.config.id2label = id2label
         self.config.label2id = label2id
         self.config.problem_type = 'single_label_classification'
-        print('Model config:', self.config)
-        print(f'Using mean pooling instead of CLS pooling for RoPE compatibility')
+        # print('Model config:', self.config)
+        # print(f'Using mean pooling instead of CLS pooling for RoPE compatibility')
 
         # Apply LoRA to the ESM backbone
         peft_config = LoraConfig(
@@ -140,11 +146,11 @@ class EsmForSequenceClassificationLightning(pl.LightningModule):
         
         # Ensure classifier is trainable
         self.classifier.requires_grad_(True)
-        
+
         # Print trainable parameters
-        self.esm.print_trainable_parameters()
+        #self.esm.print_trainable_parameters()
         classifier_params = sum(p.numel() for p in self.classifier.parameters() if p.requires_grad)
-        print(f'Classifier trainable parameters: {classifier_params:,}')
+        #print(f'Classifier trainable parameters: {classifier_params:,}')
 
         # Loss - will be used with sample weights
         self.loss_fn = torch.nn.CrossEntropyLoss(reduction='none')  # No reduction, we'll apply weights manually

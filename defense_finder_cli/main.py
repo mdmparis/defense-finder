@@ -112,6 +112,8 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='Also run ESM-DefenseFinder to predict potentially new defense genes [use at your own risk].')
 @click.option("-E",'--esmdf-only', 'esmdf_only', is_flag=True, default=False,
               help='Run only ESM-DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
+@click.option('--esm-model', 'esm_model', default="35M",
+              help='Specify which ESM model use, between ESM with 35M or 650M parameters. Possible values : [35M], 650M')
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
@@ -120,7 +122,7 @@ def update(models_dir=None, force_reinstall: bool = False):
 
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool,
         adf: bool, adf_only: bool,
-        esmdf: bool, esmdf_only: bool,
+        esmdf: bool, esmdf_only: bool, esm_model: str,
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None, skip_model_version_check: bool = False):
     """
@@ -231,7 +233,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     base_outfile = os.path.join(outdir, os.path.splitext(os.path.basename(filename))[0])
     defense_finder.run(protein_file_name, dbtype, workers, coverage,
                        adf, adf_only,
-                       esmdf, esmdf_only,
+                       esmdf, esmdf_only, esm_model,
                        tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
                        base_outfile)
     if not esmdf_only:
