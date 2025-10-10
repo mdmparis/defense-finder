@@ -222,12 +222,12 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
         sys.exit(1)
 
     logger.info(f"Running DefenseFinder version {__version__}")
-    nl = '\n'
+    nl = '\n                                '
     tab = "\t"
 
     logger.info(f"""Using the following models:
 
-{nl.join([f"{path+tab+version}" for path, version in versions_models])}
+                                {nl.join([f"{path+tab+version}" for path, version in versions_models])}
 """)
 
     base_outfile = os.path.join(outdir, os.path.splitext(os.path.basename(filename))[0])

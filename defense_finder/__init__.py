@@ -8,7 +8,7 @@ from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 
 import pandas as pd
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
-
+simplefilter(action="ignore", category=FutureWarning)
 df_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -76,6 +76,7 @@ def run(protein_file_name, dbtype, workers, coverage,
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         thresh_fdr = pd.read_json(os.path.join(df_dir, "ESM_DF", "config.json")).to_dict()
 
+        logger.info("Annotating sequences using ESM-DF...")
         # ESM_35M
         if esm_model == "35M":
             checkpoint_path = hf_hub_download("jeanrjc/ESM-DF", filename="weights_35M/epoch=0-val_macro_ap=0.184.ckpt")
