@@ -76,7 +76,37 @@ defense-finder update
 **Conda/Mamba** installation is not linked to this repo and is publish by other than us, so there might be some delays between a release here on pip and on conda.
 ***We recommand to install with pip*** when possible. 
 
-### Updating DefenseFinder
+### [Beta version] Installing DefenseFinder to make prediction with DefenseFinder_ESM models. 
+
+Following our paper (Mordret, Hervé, et al. 2025), we release the possibility to predict whether a given protein is likely defensive or not, based on ESM_DF, using ESM35M or ESM650M models.
+
+Currently, this can only be installed using the github repo, and will be not installed by default, see below:
+
+```bash
+git clone git@github.com:mdmparis/defense-finder.git
+cd defense-finder
+git checkout jcury/dev3 # developement branch, won't be necessary later
+mamba create --name defensefinder_esm python=3.12 pip hmmer -c bioconda
+mamba activate defensefinder_esm
+pip install '.[ESMDF]' # install the normal package with the ESMDF extension.
+```
+
+The following options are now available (see below for other commands):
+
+```bash
+   -e, --esmdf                   Also run ESM-DefenseFinder to predict
+                                 potentially new defense genes [use at your own
+                                 risk].
+   -E, --esmdf-only              Run only ESM-DefenseFinder to predict
+                                 potentially new defense genes, and not
+                                 DefenseFinder [use at your own risk]
+   --esm-model TEXT              Specify which ESM model use, between ESM with
+                                 35M or 650M parameters. Possible values :
+                                 [35M], 650M
+```
+
+
+### Updating DefenseFinder models
 When you have not used DefenseFinder in the last days, make sure you have the latest versions of the models.
 To verify and downloaded if necessary the latest models run:
 
@@ -91,7 +121,7 @@ However, if you have an outdated version of the DefenseFinder tool, you can use 
 pip install -U mdmparis-defense-finder
 defense-finder update
 ```
-### defense-finder update options
+### defense-finder models update options
 To check the different DefenseFinder update options run
 
 ```bash
@@ -201,7 +231,6 @@ To check the different DefenseFinder options run
 
 ```bash
 $ defense-finder run --help
-
 Usage: defense-finder run [OPTIONS] FILE
 
   Search for all known anti-phage defense systems in the target fasta file.
@@ -229,11 +258,21 @@ Options:
                                 antidefense systems.
   -A, --antidefensefinder-only  Run only AntiDefenseFinder for antidefense
                                 system and not DefenseFinder
+  -e, --esmdf                   Also run ESM-DefenseFinder to predict
+                                potentially new defense genes [use at your own
+                                risk].
+  -E, --esmdf-only              Run only ESM-DefenseFinder to predict
+                                potentially new defense genes, and not
+                                DefenseFinder [use at your own risk]
+  --esm-model TEXT              Specify which ESM model use, between ESM with
+                                35M or 650M parameters. Possible values :
+                                [35M], 650M
   --log-level TEXT              set the logging level among DEBUG, [INFO],
                                 WARNING, ERROR, CRITICAL
   --index-dir TEXT              Specify a directory to write the index files
                                 required by macsyfinder when the input file is
                                 in a read-only folder
+  --skip-model-version-check    Skip model version check
   -h, --help                    Show this message and exit.
 ```
 
