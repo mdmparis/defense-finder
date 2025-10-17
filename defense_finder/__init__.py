@@ -5,7 +5,7 @@ from macsypy.scripts import macsyfinder
 from warnings import simplefilter, catch_warnings
 
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
-
+from tqdm import tqdm
 import pandas as pd
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 simplefilter(action="ignore", category=FutureWarning)
@@ -108,56 +108,77 @@ def run(protein_file_name, dbtype, workers, coverage,
             i = 1
             nbatch = 0
             device_info = f"{torch.get_num_threads()} cpus" if device.type == "cpu" else torch.cuda.get_device_name()
-            logger.info(f"Predicting with ESM-DF on {protein_file_name}, running on {device_info}")
+            logger.info(f"Loading sequences from {protein_file_name}")
             while sf.readinto(seq):
                 # if i % 2: # batch size=2
                 #     allseq.append([])
                 #     allseqname.append([])
-                sseq = seq.sequence
-                sname = seq.name.decode()
-                # allseq[-1].append(sseq)
-                # allseqname[-1].append(sname)
-                current_batch.append(sseq)
-                current_batch_name.append(sname)
-                seq.clear()
+                multiseq = False
+                if len(seq.sequence) > 1024:
+                    for start in range(0, len(seq.sequence), 512):
+                        sseq = seq.sequence[start:start+1024]
+                        sname = seq.name.decode() + "_" + str(start)
+                        current_batch.append(sseq)
+                        current_batch_name.append(sname)
+                        i += 1
+                        multiseq = True
+                    seq.clear()
+                else:
+                    sseq = seq.sequence
+                    sname = seq.name.decode()
+                    # allseq[-1].append(sseq)
+                    # allseqname[-1].append(sname)
+                    current_batch.append(sseq)
+                    current_batch_name.append(sname)
+                    seq.clear()
                 
-                if not i % 10: # batch size
-                    nbatch += 1
-                    logger.debug(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
-                    batch = tokenizer(current_batch, padding=True, return_tensors="pt")
-                    input_ids = batch['input_ids']
-                    attention_mask = batch['attention_mask']
-                    logger.debug(f"Batch dimension : {input_ids.shape}")
-                    outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
-                    #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
-                    logits = outputs.logits.detach().cpu().numpy()
-                    #sm_def = torch.softmax(logits, 1).T[1]
-                    tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
-                                        pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-                    df_res = pd.concat([df_res, tmp_df])
-                    logger.debug(f"df_res dimension : {df_res.shape}")
-                    #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
-                    # reinit batch
-                    current_batch = []
-                    current_batch_name = []
-                i += 1
-            # predict on last partial batch
-            if len(current_batch):
-                logger.debug(f"Predicting on last batch {nbatch}. {i} proteins predicted so far")
-                batch = tokenizer(current_batch, padding=True, return_tensors="pt")
-                input_ids = batch['input_ids']
-                attention_mask = batch['attention_mask']
-                logger.debug(f"Batch dimension : {input_ids.shape}")
-                outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
-                #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
-                logits = outputs.logits.detach().cpu().numpy()
-                #sm_def = torch.softmax(logits, 1).T[1]
-                tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
+        logger.info(f"Predicting with ESM-DF on {len(current_batch)} proteins, running on {device_info}")
+        pbar = tqdm(total = len(current_batch))
+        size_batch = 2
+        while len(current_batch):
+            minibatch = []
+            minibatchname = []
+            for b in range(min(len(current_batch), size_batch)):
+                minibatch.append(current_batch.pop(0))
+                minibatchname.append(current_batch_name.pop(0))
+                    
+                    # logger.debug(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
+            batch = tokenizer(minibatch, padding=True, return_tensors="pt")
+            input_ids = batch['input_ids']
+            attention_mask = batch['attention_mask']
+            logger.debug(f"Batch dimension : {input_ids.shape}")
+            outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
+            #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
+            logits = outputs.logits.detach().cpu().numpy()
+            #sm_def = torch.softmax(logits, 1).T[1]
+            tmp_df = pd.concat([pd.Series(minibatchname, name="hit_id"),
                                     pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-                df_res = pd.concat([df_res, tmp_df])
-                logger.debug(f"df_res dimension : {df_res.shape}")
+            df_res = pd.concat([df_res, tmp_df])
+            logger.debug(f"df_res dimension : {df_res.shape}")
+            pbar.update(size_batch)
 
+                #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
+                # reinit batch
+                #current_batch = []
+                #current_batch_name = []
+            #i += 1
+        # predict on last partial batch
+            # if len(current_batch):
+            #     logger.debug(f"Predicting on last batch {nbatch}. {i} proteins predicted so far")
+            #     batch = tokenizer(current_batch, padding=True, return_tensors="pt")
+            #     input_ids = batch['input_ids']
+            #     attention_mask = batch['attention_mask']
+            #     logger.debug(f"Batch dimension : {input_ids.shape}")
+            #     outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
+            #     #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
+            #     logits = outputs.logits.detach().cpu().numpy()
+            #     #sm_def = torch.softmax(logits, 1).T[1]
+            #     tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
+            #                         pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
+            #     df_res = pd.concat([df_res, tmp_df])
+            #     logger.debug(f"df_res dimension : {df_res.shape}")
 
+        pbar.close()
         logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
 
         df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
