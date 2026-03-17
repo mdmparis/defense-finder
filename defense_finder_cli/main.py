@@ -162,7 +162,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
             logger.info(f"{filename} is a nucleotide fasta file. Prodigal will annotate the CDS")
             while sf.readinto(seq) is not None: # iterate over sequences in case multifasta
                 sseq = bytes(seq.sequence, encoding="utf-8")
-                sname = seq.name.decode()
+                sname = seq.name.decode() if isinstance(seq.name, bytes) else seq.name
                 if len(sseq) < 100000: # it is recommended to use the mode meta when seq is less than 100kb
                     orf_finder = pyrodigal.GeneFinder(meta=True)
                     dic_genes[sname] = orf_finder.find_genes(sseq)
