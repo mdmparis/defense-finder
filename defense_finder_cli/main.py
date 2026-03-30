@@ -82,6 +82,8 @@ def update(models_dir=None, force_reinstall: bool = False):
     This will make them available to macsyfinder and ultimately to defense-finder.
 
     Models repository: https://github.com/mdmparis/defense-finder-models.
+
+    Note: CasFinder models are pinned to version 3.1.0 for compatibility.
     """
     defense_finder_updater.update_models(models_dir, force_reinstall)
 
