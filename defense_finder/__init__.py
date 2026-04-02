@@ -183,4 +183,5 @@ def run(protein_file_name, dbtype, workers, coverage,
 
         df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
         df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+        df_res["ESM_model"] = esm_model
         df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
