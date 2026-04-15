@@ -20,8 +20,9 @@ def build_defense_finder_systems(defense_finder_genes):
         name_of_profiles_in_sys = defense_finder_genes.groupby('sys_id').gene_name.apply(lambda x: ",".join(x.sort_values())).reset_index().rename({'gene_name': 'name_of_profiles_in_sys'}, axis=1)
         out = out.merge(name_of_profiles_in_sys, on='sys_id')
         # Reorder by hit_pos
-        out = out.merge(defense_finder_genes[['hit_id', 'hit_pos']], left_on='sys_beg', right_on='hit_id').sort_values('hit_pos').reset_index(drop=True)
+        out = out.merge(defense_finder_genes[['hit_id', 'hit_pos']], left_on='sys_beg', right_on='hit_id').sort_values('hit_pos')
         out = out.drop(columns=['hit_id', 'hit_pos'])
+        out = out.drop_duplicates().reset_index(drop=True)
     else:
         out = pd.DataFrame(columns=['sys_id', 'type', 'subtype', 'activity', 'sys_beg', 'sys_end', 'protein_in_syst', 'genes_count', 'name_of_profiles_in_sys'])
 
