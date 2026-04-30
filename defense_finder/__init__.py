@@ -9,12 +9,145 @@ from tqdm import tqdm
 import pandas as pd
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 simplefilter(action="ignore", category=FutureWarning)
+import sys
+
+
+
 df_dir = os.path.dirname(os.path.abspath(__file__))
+
+
+def seq_parser_inference(protein_file_name, model, model_name, device, logger, tokenizer, batch_size=10):
+    """
+    parse protein fasta file, and run model in inference on it.
+    """
+
+    import torch
+
+    df_res = pd.DataFrame(columns=["hit_id", "logit_NonDef", "logit_Def"])
+
+    with SequenceFile(protein_file_name) as sf:
+        seq = TextSequence()
+        allseq = []
+        allseqname = []
+        current_batch = []
+        current_batch_name = []
+        i = 1
+        nbatch = 0
+        device_info = f"{torch.get_num_threads()} cpus" if device.type == "cpu" else torch.cuda.get_device_name()
+        logger.info(f"Predicting with {model_name} on {protein_file_name}, running on {device_info}")
+        while sf.readinto(seq):
+            # if i % 2: # batch size=2
+            #     allseq.append([])
+            #     allseqname.append([])
+            sseq = seq.sequence
+            sname = seq.name.decode()
+            # allseq[-1].append(sseq)
+            # allseqname[-1].append(sname)
+            current_batch.append(sseq)
+            current_batch_name.append(sname)
+            seq.clear()
+            
+            if not i % batch_size: # batch size
+                nbatch += 1
+                logger.debug(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
+                batch = tokenizer(current_batch, padding=True, return_tensors="pt")
+                input_ids = batch['input_ids']
+                attention_mask = batch['attention_mask']
+                logger.debug(f"Batch dimension : {input_ids.shape}")
+                outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
+                #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
+                logits = outputs.logits.detach().cpu().numpy()
+                #sm_def = torch.softmax(logits, 1).T[1]
+                tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
+                                    pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
+                df_res = pd.concat([df_res, tmp_df])
+                logger.debug(f"df_res dimension : {df_res.shape}")
+                #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
+                # reinit batch
+                current_batch = []
+                current_batch_name = []
+            i += 1
+        # predict on last partial batch
+        if len(current_batch):
+            logger.debug(f"Predicting on last batch {nbatch}. {i} proteins predicted so far")
+            batch = tokenizer(current_batch, padding=True, return_tensors="pt")
+            input_ids = batch['input_ids']
+            attention_mask = batch['attention_mask']
+            logger.debug(f"Batch dimension : {input_ids.shape}")
+            outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
+            #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
+            logits = outputs.logits.detach().cpu().numpy()
+            #sm_def = torch.softmax(logits, 1).T[1]
+            tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
+                                pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
+            df_res = pd.concat([df_res, tmp_df])
+            logger.debug(f"df_res dimension : {df_res.shape}")
+
+    return df_res
+
+
+def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
+        """
+        run esm model on protein fasta file.
+        """
+        import torch
+        from transformers import AutoTokenizer
+        from .ESM_DF.model import EsmForSequenceClassificationLightning
+        from huggingface_hub import hf_hub_download
+
+        logger3 = colorlog.getLogger("EsmForSequenceClassificationLightning")
+        logger3.setLevel("ERROR")
+        logger = colorlog.getLogger("Defense_Finder")
+        with catch_warnings(action="ignore"):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        thresh_fdr = pd.read_json(os.path.join(df_dir, "ESM_DF", "config.json")).to_dict()
+
+        # ESM_35M
+        if esm_model == "35M":
+            model_name = "ESM-DF_35M"
+            checkpoint_path = hf_hub_download("jeanrjc/ESM-DF", filename="weights_35M/epoch=0-val_macro_ap=0.184.ckpt")
+        elif esm_model == "650M":
+            model_name = "ESM-DF_650M"
+            checkpoint_path = hf_hub_download("jeanrjc/ESM-DF", filename="weights_650M/epoch=0-val_macro_ap=0.601.ckpt")
+        else:
+            logger.error(f"ESM_model should be 35M or 650M, not {esm_model}")
+            sys.exit(1)
+
+        with catch_warnings(action="ignore"):
+            # Load the trained model from checkpoint
+            model = EsmForSequenceClassificationLightning.load_from_checkpoint(
+                checkpoint_path, 
+                strict=False
+            )
+
+            # Set to evaluation mode
+            _ = model.eval()
+            #model.bfloat16()
+
+        tokenizer_path = os.path.join(df_dir, "ESM_DF", "tokenizer", "ESM2_tokenizer")
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+
+        df_res = seq_parser_inference(protein_file_name, model, model_name, 
+                                      device, logger,
+                                      tokenizer, batch_size=10)
+
+        logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
+
+        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
+        df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+        df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
+
+
+#def run_geneCLR():
+
+
+
 
 
 def run(protein_file_name, dbtype, workers, coverage,
         adf, adf_only,
         esmdf, esmdf_only, esm_model,
+        geneclrdf, geneclrdf_only,
         tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver,
         base_outfile):
 
@@ -65,123 +198,6 @@ def run(protein_file_name, dbtype, workers, coverage,
 
     if (esmdf == True) or (esmdf_only == True):
 
-        import torch
-        from transformers import AutoModelForSequenceClassification, AutoTokenizer
-        from .ESM_DF.model import EsmForSequenceClassificationLightning
-        from huggingface_hub import hf_hub_download
-        logger3 = colorlog.getLogger("EsmForSequenceClassificationLightning")
-        logger3.setLevel("INFO")
-        logger = colorlog.getLogger("Defense_Finder")
-        with catch_warnings(action="ignore"):
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        thresh_fdr = pd.read_json(os.path.join(df_dir, "ESM_DF", "config.json")).to_dict()
-
-        logger.info("Annotating sequences using ESM-DF...")
-        # ESM_35M
-        if esm_model == "35M":
-            checkpoint_path = hf_hub_download("jeanrjc/ESM-DF", filename="weights_35M/epoch=0-val_macro_ap=0.184.ckpt")
-        else:
-            checkpoint_path = hf_hub_download("jeanrjc/ESM-DF", filename="weights_650M/epoch=0-val_macro_ap=0.601.ckpt")
-
-        with catch_warnings(action="ignore"):
-            # Load the trained model from checkpoint
-            model = EsmForSequenceClassificationLightning.load_from_checkpoint(
-                checkpoint_path, 
-                strict=False
-            )
-
-            # Set to evaluation mode
-            _ = model.eval()
-            #model.bfloat16()
-
-        tokenizer_path = os.path.join(df_dir, "ESM_DF", "tokenizer", "ESM2_tokenizer")
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-
-        df_res = pd.DataFrame(columns=["hit_id", "logit_NonDef", "logit_Def"])
-
-        with SequenceFile(protein_file_name) as sf:
-            seq = TextSequence()
-            allseq = []
-            allseqname = []
-            current_batch = []
-            current_batch_name = []
-            i = 1
-            nbatch = 0
-            device_info = f"{torch.get_num_threads()} cpus" if device.type == "cpu" else torch.cuda.get_device_name()
-            logger.info(f"Loading sequences from {protein_file_name}")
-            while sf.readinto(seq):
-                # if i % 2: # batch size=2
-                #     allseq.append([])
-                #     allseqname.append([])
-                multiseq = False
-                if len(seq.sequence) > 1024:
-                    for start in range(0, len(seq.sequence), 512):
-                        sseq = seq.sequence[start:start+1024]
-                        sname = seq.name.decode() + "_" + str(start)
-                        current_batch.append(sseq)
-                        current_batch_name.append(sname)
-                        i += 1
-                        multiseq = True
-                    seq.clear()
-                else:
-                    sseq = seq.sequence
-                    sname = seq.name.decode()
-                    # allseq[-1].append(sseq)
-                    # allseqname[-1].append(sname)
-                    current_batch.append(sseq)
-                    current_batch_name.append(sname)
-                    seq.clear()
-                
-        logger.info(f"Predicting with ESM-DF on {len(current_batch)} proteins, running on {device_info}")
-        pbar = tqdm(total = len(current_batch))
-        size_batch = 2
-        while len(current_batch):
-            minibatch = []
-            minibatchname = []
-            for b in range(min(len(current_batch), size_batch)):
-                minibatch.append(current_batch.pop(0))
-                minibatchname.append(current_batch_name.pop(0))
-                    
-                    # logger.debug(f"Predicting on batch {nbatch}. {i} proteins predicted so far")
-            batch = tokenizer(minibatch, padding=True, return_tensors="pt")
-            input_ids = batch['input_ids']
-            attention_mask = batch['attention_mask']
-            logger.debug(f"Batch dimension : {input_ids.shape}")
-            outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
-            #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
-            logits = outputs.logits.detach().cpu().numpy()
-            #sm_def = torch.softmax(logits, 1).T[1]
-            tmp_df = pd.concat([pd.Series(minibatchname, name="hit_id"),
-                                    pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-            df_res = pd.concat([df_res, tmp_df])
-            logger.debug(f"df_res dimension : {df_res.shape}")
-            pbar.update(size_batch)
-
-                #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
-                # reinit batch
-                #current_batch = []
-                #current_batch_name = []
-            #i += 1
-        # predict on last partial batch
-            # if len(current_batch):
-            #     logger.debug(f"Predicting on last batch {nbatch}. {i} proteins predicted so far")
-            #     batch = tokenizer(current_batch, padding=True, return_tensors="pt")
-            #     input_ids = batch['input_ids']
-            #     attention_mask = batch['attention_mask']
-            #     logger.debug(f"Batch dimension : {input_ids.shape}")
-            #     outputs = model(input_ids=input_ids.to(device), attention_mask=attention_mask.to(device))
-            #     #logits = outputs.logits.float().detach().cpu().numpy() # if model in bfloat16
-            #     logits = outputs.logits.detach().cpu().numpy()
-            #     #sm_def = torch.softmax(logits, 1).T[1]
-            #     tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
-            #                         pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-            #     df_res = pd.concat([df_res, tmp_df])
-            #     logger.debug(f"df_res dimension : {df_res.shape}")
-
-        pbar.close()
-        logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
-
-        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
-        df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
-        df_res["ESM_model"] = esm_model
-        df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
+        run_esm(protein_file_name, esm_model, loglevel, base_outfile)
+    
+    if (gene)
