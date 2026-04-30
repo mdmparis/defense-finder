@@ -111,11 +111,17 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('-e','--esmdf', 'esmdf', is_flag=True, default=False,
               help='Also run ESM-DefenseFinder to predict potentially new defense genes [use at your own risk].')
 @click.option("-E",'--esmdf-only', 'esmdf_only', is_flag=True, default=False,
-              help='Run only ESM-DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
+              help='Run ESM-DefenseFinder and not DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
 @click.option('--esm-model', 'esm_model', default="35M",
               help='Specify which ESM model use, between ESM with 35M or 650M parameters. Possible values : [35M], 650M')
 @click.option('--log-level', 'loglevel', default="INFO",
               help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
+@click.option('-g','--geneclrdf', 'geneclrdf', is_flag=True, default=False,
+              help='Also run GeneCLR-DefenseFinder to predict potentially new defense genes [use at your own risk].')
+@click.option("-G",'--geneclrdf-only', 'geneclrdf_only', is_flag=True, default=False,
+              help='Run only GeneCLR-DefenseFinder and not DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
+@click.option('--prot-table-positions', 'prot_table_positions', default=None,
+              help='Specify the path to the table containing ID, start, end, sequences corresponding to the input file, if input file is protein fasta file')
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 @click.option('--skip-model-version-check', is_flag=True, default=False,
               help='Skip model version check')
@@ -123,6 +129,7 @@ def update(models_dir=None, force_reinstall: bool = False):
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool,
         adf: bool, adf_only: bool,
         esmdf: bool, esmdf_only: bool, esm_model: str,
+        geneclrdf: bool, geneclrdf_only: bool, prot_table_positions: str,
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None, skip_model_version_check: bool = False):
     """
@@ -162,11 +169,12 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
         shutil.rmtree(tmp_dir)
 
     os.makedirs(tmp_dir)
-
+    input_file_is_DNA = False
     with SequenceFile(filename) as sf:
         seq = TextSequence()
         dic_genes = {}
         if sf.guess_alphabet() == Alphabet.dna():
+            input_file_is_DNA = True
             logger.info(f"{filename} is a nucleotide fasta file. Prodigal will annotate the CDS")
             while sf.readinto(seq) is not None: # iterate over sequences in case multifasta
                 sseq = bytes(seq.sequence, encoding="utf-8")
@@ -179,6 +187,9 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                     orf_finder.train(sseq)
                     dic_genes[sname] = orf_finder.find_genes(sseq)
                 seq.clear()
+            if (geneclrdf == True) or (geneclrdf_only == True):
+                from defense_finder.GeneCLR_DF import geneclr_helper as gch
+                genes_df = gch.pyrodigal_annotation_dict_to_dataframe(dic_genes)
 
             protein_file_name = os.path.join(outdir, f"{os.path.splitext(os.path.basename(filename))[0]}.prt")
 
@@ -234,6 +245,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     defense_finder.run(protein_file_name, dbtype, workers, coverage,
                        adf, adf_only,
                        esmdf, esmdf_only, esm_model,
+                       geneclrdf, geneclrdf_only, genes_df,
                        tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
                        base_outfile)
     if not esmdf_only:

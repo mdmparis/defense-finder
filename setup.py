@@ -40,7 +40,7 @@ setup(name='mdmparis-defense-finder',
       python_requires='>=3.10',
       install_requires=read_req('requirements.txt'),
       extras_require=dict(dev=read_req('requirements-dev.txt'),
-                          ESMDF=["peft", "lightning", "torch", "mkl", "transformers", "huggingface_hub"]
+                          ESMDF=["peft", "lightning", "torch", "mkl", "transformers", "huggingface_hub", "einops"]
                          ),
       packages=[
           'defense_finder',

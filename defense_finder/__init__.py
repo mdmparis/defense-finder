@@ -12,11 +12,10 @@ simplefilter(action="ignore", category=FutureWarning)
 import sys
 
 
-
 df_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def seq_parser_inference(protein_file_name, model, model_name, device, logger, tokenizer, batch_size=10):
+def seq_parser_inference_esm(protein_file_name, model, model_name, device, logger, tokenizer, batch_size=10):
     """
     parse protein fasta file, and run model in inference on it.
     """
@@ -100,8 +99,7 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
         logger = colorlog.getLogger("Defense_Finder")
         with catch_warnings(action="ignore"):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        thresh_fdr = pd.read_json(os.path.join(df_dir, "ESM_DF", "config.json")).to_dict()
-
+        thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
         # ESM_35M
         if esm_model == "35M":
             model_name = "ESM-DF_35M"
@@ -127,7 +125,7 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
         tokenizer_path = os.path.join(df_dir, "ESM_DF", "tokenizer", "ESM2_tokenizer")
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
-        df_res = seq_parser_inference(protein_file_name, model, model_name, 
+        df_res = seq_parser_inference_esm(protein_file_name, model, model_name, 
                                       device, logger,
                                       tokenizer, batch_size=10)
 
@@ -138,8 +136,58 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
         df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
-#def run_geneCLR():
+def run_geneCLR(genes_df, loglevel, base_outfile):
 
+        import torch
+        from .GeneCLR_DF import geneclr_helper as gch
+        from .GeneCLR_DF.geneclr.model import GeneCLR, GeneClrForTokenClassification
+        from .GeneCLR_DF.geneclr.datamodule_inference import InferenceGeneCLRDataModule
+        from .GeneCLR_DF.geneclr.prodigal_io import pyrodigal_annotation_dict_to_dataframe
+        from huggingface_hub import hf_hub_download
+
+        logger = colorlog.getLogger("Defense_Finder")
+        with catch_warnings(action="ignore"):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
+
+        checkpoint_path = hf_hub_download("jeanrjc/GeneCLR-DF", filename="geneCLR_weights_inference.ckpt")
+
+        WINDOW_SIZE = 64
+        DEFAULT_STRIDE = 32
+
+        windows, window_to_gene_indices = gch.create_overlapping_windows(
+            genes_df, window_size=WINDOW_SIZE, stride=DEFAULT_STRIDE
+        )
+        logger.info(f"Created {len(windows)} windows (stride={DEFAULT_STRIDE})")
+        gene_ids = genes_df["gene_id"].values
+        
+        datamodule = InferenceGeneCLRDataModule(
+                            fragments=windows,
+                            batch_size=10,
+                            num_workers=0,
+                            device=device,
+                            fragment_length=WINDOW_SIZE,
+                        )
+        datamodule.setup()
+        dataloader = datamodule.val_dataloader()
+        gch.run_classifier_inference_cli(
+            checkpoint_path,
+            os.path.join(df_dir, "GeneCLR_DF", "finetuning_config_minimal.yaml"),
+            device,
+            dataloader,
+            window_to_gene_indices,
+            len(genes_df),
+            gene_ids,
+            f"{base_outfile}_GeneCLR_DF.tsv",
+            "csv",
+        )
+
+
+        logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
+
+        # df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
+        # df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+        # df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
 
@@ -147,13 +195,13 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
 def run(protein_file_name, dbtype, workers, coverage,
         adf, adf_only,
         esmdf, esmdf_only, esm_model,
-        geneclrdf, geneclrdf_only,
+        geneclrdf, geneclrdf_only, genes_df,
         tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver,
         base_outfile):
 
     scripts = []
 
-    if adf_only == False and esmdf_only == False:
+    if adf_only == False and esmdf_only == False and geneclrdf_only == False:
         if models_main_ver >= 2:
             scripts.append(['--db-type', dbtype, '--sequence-db',protein_file_name, '--models', 'defense-finder-models/DefenseFinder', 'all',
                             '--out-dir', os.path.join(tmp_dir, 'DefenseFinder'), '--w', str(workers),
@@ -200,4 +248,5 @@ def run(protein_file_name, dbtype, workers, coverage,
 
         run_esm(protein_file_name, esm_model, loglevel, base_outfile)
     
-    if (gene)
+    if (geneclrdf == True) or (geneclrdf_only == True):
+        run_geneCLR(genes_df, loglevel, base_outfile)
