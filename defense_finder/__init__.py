@@ -131,8 +131,9 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
 
         logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
 
-        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
         df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
+        df_res["probable_defense_gene_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["ESMDF"][esm_model]
         df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
@@ -170,7 +171,7 @@ def run_geneCLR(genes_df, loglevel, base_outfile):
                         )
         datamodule.setup()
         dataloader = datamodule.val_dataloader()
-        gch.run_classifier_inference_cli(
+        df_res = gch.run_classifier_inference_cli(
             checkpoint_path,
             os.path.join(df_dir, "GeneCLR_DF", "finetuning_config_minimal.yaml"),
             device,
@@ -182,12 +183,12 @@ def run_geneCLR(genes_df, loglevel, base_outfile):
             "csv",
         )
 
+        #logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
 
-        logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
-
-        # df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
-        # df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
-        # df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
+        df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["GENECLRDF"]
+        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["GENECLRDF"]
+        df_res["probable_defense_gene_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["GENECLRDF"]
+        df_res.to_csv(f"{base_outfile}_GeneCLR_DF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
 
