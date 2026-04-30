@@ -15,7 +15,7 @@ import sys
 df_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def seq_parser_inference_esm(protein_file_name, model, model_name, device, logger, tokenizer, batch_size=10):
+def seq_parser_inference_esm(protein_file_name, model, model_name, device, logger, tokenizer, batch_size):
     """
     parse protein fasta file, and run model in inference on it.
     """
@@ -23,7 +23,7 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
     import torch
 
     df_res = pd.DataFrame(columns=["hit_id", "logit_NonDef", "logit_Def"])
-
+    all_res = []
     with SequenceFile(protein_file_name) as sf:
         seq = TextSequence()
         allseq = []
@@ -58,11 +58,9 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
                 logits = outputs.logits.detach().cpu().numpy()
                 #sm_def = torch.softmax(logits, 1).T[1]
                 tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
-                                    pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-                if len(df_res):
-                    df_res = pd.concat([df_res, tmp_df])
-                else:
-                    df_res = tmp_df
+                                    pd.DataFrame(logits[:,1], columns=["logit_Def"])], axis=1)
+                all_res.append(tmp_df)
+
                 logger.debug(f"df_res dimension : {df_res.shape}")
                 #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
                 # reinit batch
@@ -81,14 +79,15 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
             logits = outputs.logits.detach().cpu().numpy()
             #sm_def = torch.softmax(logits, 1).T[1]
             tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
-                                pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-            df_res = pd.concat([df_res, tmp_df])
+                                pd.DataFrame(logits[:, 1], columns=["logit_Def"])], axis=1)
+            all_res.append(tmp_df)
             logger.debug(f"df_res dimension : {df_res.shape}")
 
+    df_res = pd.concat(all_res, ignore_index=True)
     return df_res
 
 
-def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
+def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size):
         """
         run esm model on protein fasta file.
         """
@@ -130,17 +129,17 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile):
 
         df_res = seq_parser_inference_esm(protein_file_name, model, model_name, 
                                       device, logger,
-                                      tokenizer, batch_size=10)
+                                      tokenizer, batch_size)
 
         logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
 
-        df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
-        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
-        df_res["probable_defense_gene_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["ESMDF"][esm_model]
+        df_res["prob_def_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+        df_res["prob_def_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
+        df_res["prob_def_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["ESMDF"][esm_model]
         df_res.to_csv(f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
-def run_geneCLR(genes_df, loglevel, base_outfile):
+def run_geneCLR(genes_df, loglevel, base_outfile, batch_size):
 
         import torch
         from .GeneCLR_DF import geneclr_helper as gch
@@ -154,6 +153,9 @@ def run_geneCLR(genes_df, loglevel, base_outfile):
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
 
+        device_info = f"{torch.get_num_threads()} cpus" if device.type == "cpu" else torch.cuda.get_device_name()
+        logger.info(f"Predicting with GeneCLR_DF on {os.path.basename(base_outfile)}, running on {device_info}")
+
         checkpoint_path = hf_hub_download("jeanrjc/GeneCLR-DF", filename="geneCLR_weights_inference.ckpt")
 
         WINDOW_SIZE = 64
@@ -162,18 +164,21 @@ def run_geneCLR(genes_df, loglevel, base_outfile):
         windows, window_to_gene_indices = gch.create_overlapping_windows(
             genes_df, window_size=WINDOW_SIZE, stride=DEFAULT_STRIDE
         )
-        logger.info(f"Created {len(windows)} windows (stride={DEFAULT_STRIDE})")
-        gene_ids = genes_df["gene_id"].values
-        
+        logger.debug(f"Created {len(windows)} windows (stride={DEFAULT_STRIDE})")
+        gene_ids = genes_df["hit_id"].values
+        logger.debug(f"Creating GeneCLR datamoduleand dataloader")
+
         datamodule = InferenceGeneCLRDataModule(
                             fragments=windows,
-                            batch_size=10,
+                            batch_size=batch_size,
                             num_workers=0,
                             device=device,
                             fragment_length=WINDOW_SIZE,
                         )
         datamodule.setup()
         dataloader = datamodule.val_dataloader()
+        logger.debug(f"Running inference with GeneCLR_DF")
+
         df_res = gch.run_classifier_inference_cli(
             checkpoint_path,
             os.path.join(df_dir, "GeneCLR_DF", "finetuning_config_minimal.yaml"),
@@ -188,9 +193,9 @@ def run_geneCLR(genes_df, loglevel, base_outfile):
 
         #logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
 
-        df_res["probable_defense_gene_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["GENECLRDF"]
-        df_res["probable_defense_gene_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["GENECLRDF"]
-        df_res["probable_defense_gene_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["GENECLRDF"]
+        df_res["prob_def_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["GENECLRDF"]
+        df_res["prob_def_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["GENECLRDF"]
+        df_res["prob_def_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["GENECLRDF"]
         df_res.to_csv(f"{base_outfile}_GeneCLR_DF.tsv", sep="\t", index=False, float_format='%.5f')
 
 
@@ -201,7 +206,7 @@ def run(protein_file_name, dbtype, workers, coverage,
         esmdf, esmdf_only, esm_model,
         geneclrdf, geneclrdf_only, genes_df,
         tmp_dir, models_dir, nocut_ga, loglevel, index_dir, models_main_ver,
-        base_outfile):
+        base_outfile, batch_size):
 
     scripts = []
 
@@ -250,7 +255,7 @@ def run(protein_file_name, dbtype, workers, coverage,
 
     if (esmdf == True) or (esmdf_only == True):
 
-        run_esm(protein_file_name, esm_model, loglevel, base_outfile)
+        run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size)
     
     if (geneclrdf == True) or (geneclrdf_only == True):
-        run_geneCLR(genes_df, loglevel, base_outfile)
+        run_geneCLR(genes_df, loglevel, base_outfile, batch_size)

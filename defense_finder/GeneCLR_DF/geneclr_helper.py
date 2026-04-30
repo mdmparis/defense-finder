@@ -250,9 +250,9 @@ def average_overlapping_scores(
 
 
 def load_genes_from_csv(path: str) -> pd.DataFrame:
-    """Load genes from CSV with columns: gene_id, start, end, sequence."""
+    """Load genes from CSV with columns: hit_id, start, end, sequence."""
     df = pd.read_csv(path)
-    required = {"gene_id", "start", "end", "sequence"}
+    required = {"hit_id", "start", "end", "sequence"}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"CSV must have columns {required}. Missing: {missing}")
@@ -274,7 +274,7 @@ def load_genes_from_fasta_pyrodigal(path: str, meta_threshold: int = 100_000) ->
         meta_threshold: Length below which metagenomic mode is used (default 100_000).
 
     Returns:
-        DataFrame with columns gene_id, start, end, sequence (GeneCLR / CSV contract).
+        DataFrame with columns hit_id, start, end, sequence (GeneCLR / CSV contract).
     """
     try:
         import pyrodigal
@@ -461,7 +461,7 @@ def write_dataframe_output(
     fmt = output_format.lower()
     if fmt == "csv":
         if index:
-            df.to_csv(path, index=True, index_label=index_label or "gene_id")
+            df.to_csv(path, index=True, index_label=index_label or "hit_id")
         else:
             df.to_csv(path, index=False)
     else:
@@ -494,18 +494,18 @@ def project_pre_to_post(model: GeneCLR, pre_embeddings: np.ndarray, device: str)
 
 
 def save_embeddings_matrix(
-    gene_ids: Union[np.ndarray, pd.Series],
+    hit_ids: Union[np.ndarray, pd.Series],
     embeddings: np.ndarray,
     path: str,
     output_format: str,
     desc: str,
 ) -> None:
-    """Save ``(n_genes, embed_dim)`` matrix with ``gene_id`` as row index."""
+    """Save ``(n_genes, embed_dim)`` matrix with ``hit_id`` as row index."""
     embed_dim = embeddings.shape[-1]
     columns = list(range(embed_dim))
-    result_df = pd.DataFrame(embeddings, index=gene_ids, columns=columns)
-    write_dataframe_output(path, output_format, result_df, index=True, index_label="gene_id")
-    print(f"Saved {len(gene_ids)} x {embed_dim} {desc} embeddings to {path} ({output_format.lower()})")
+    result_df = pd.DataFrame(embeddings, index=hit_ids, columns=columns)
+    write_dataframe_output(path, output_format, result_df, index=True, index_label="hit_id")
+    print(f"Saved {len(hit_ids)} x {embed_dim} {desc} embeddings to {path} ({output_format.lower()})")
 
 
 def run_classifier_inference_cli(
@@ -515,7 +515,7 @@ def run_classifier_inference_cli(
     dataloader,
     window_to_gene_indices: list,
     n_genes: int,
-    gene_ids: np.ndarray,
+    hit_ids: np.ndarray,
     output_path: str,
     output_format: str,
 ) -> bool:
@@ -529,9 +529,9 @@ def run_classifier_inference_cli(
         return False
     gene_logits = average_overlapping_scores(window_logits, window_to_gene_indices, n_genes)
     if gene_logits.ndim == 1:
-        out_df = pd.DataFrame({"gene_id": gene_ids, "logit_Def": gene_logits})
+        out_df = pd.DataFrame({"hit_id": hit_ids, "logit_Def": gene_logits})
     else:
-        cols = {"gene_id": gene_ids}
+        cols = {"hit_id": hit_ids}
         for j in range(gene_logits.shape[1]):
             cols[f"logit_{j}"] = gene_logits[:, j]
         out_df = pd.DataFrame(cols)
@@ -547,7 +547,7 @@ def run_embeddings_inference_cli(
     dataloader,
     window_to_gene_indices: list,
     n_genes: int,
-    gene_ids: np.ndarray,
+    hit_ids: np.ndarray,
     output_path: str,
     output_format: str,
     output_mode: str,
@@ -565,15 +565,15 @@ def run_embeddings_inference_cli(
         context_outputs, window_to_gene_indices, n_genes, context_outputs.shape[-1]
     )
     if output_mode == "pre":
-        save_embeddings_matrix(gene_ids, pre_embeddings, output_path, output_format, "pre-projection")
+        save_embeddings_matrix(hit_ids, pre_embeddings, output_path, output_format, "pre-projection")
     elif output_mode == "post":
         post_embeddings = project_pre_to_post(model, pre_embeddings, device)
-        save_embeddings_matrix(gene_ids, post_embeddings, output_path, output_format, "post-projection")
+        save_embeddings_matrix(hit_ids, post_embeddings, output_path, output_format, "post-projection")
     else:
-        save_embeddings_matrix(gene_ids, pre_embeddings, output_path, output_format, "pre-projection")
+        save_embeddings_matrix(hit_ids, pre_embeddings, output_path, output_format, "pre-projection")
         post_embeddings = project_pre_to_post(model, pre_embeddings, device)
         save_embeddings_matrix(
-            gene_ids,
+            hit_ids,
             post_embeddings,
             post_output_path(output_path, output_format),
             output_format,
@@ -604,7 +604,7 @@ def main():
         "--input",
         type=str,
         default=None,
-        help="Path to CSV with columns gene_id, start, end, sequence",
+        help="Path to CSV with columns hit_id, start, end, sequence",
     )
     input_group.add_argument(
         "--input-fasta",
@@ -647,7 +647,7 @@ def main():
         type=str,
         default=None,
         metavar="PATH",
-        help="If set, save the loaded genes DataFrame (gene_id, start, end, sequence) to PATH; "
+        help="If set, save the loaded genes DataFrame (hit_id, start, end, sequence) to PATH; "
         "format follows --output-format (default parquet)",
     )
 
@@ -679,7 +679,7 @@ def main():
     )
     print(f"Created {len(windows)} windows (stride={args.stride})")
     
-    gene_ids = genes_df["gene_id"].values
+    hit_ids = genes_df["hit_id"].values
 
     datamodule = InferenceGeneCLRDataModule(
         fragments=windows,
@@ -699,7 +699,7 @@ def main():
             dataloader,
             window_to_gene_indices,
             n_genes,
-            gene_ids,
+            hit_ids,
             args.output,
             args.output_format,
         )
@@ -712,7 +712,7 @@ def main():
         dataloader,
         window_to_gene_indices,
         n_genes,
-        gene_ids,
+        hit_ids,
         args.output,
         args.output_format,
         args.output_mode,

@@ -11,7 +11,7 @@ Example (after running Prodigal as in your pipeline)::
     # ... fill dic_genes with orf_finder.find_genes(sseq) per contig ...
     from geneclr.prodigal_io import pyrodigal_annotation_dict_to_dataframe
     genes_df = pyrodigal_annotation_dict_to_dataframe(dic_genes)
-    # genes_df has columns gene_id, start, end, sequence — pass to
+    # genes_df has columns hit_id, start, end, sequence — pass to
     # create_overlapping_windows + InferenceGeneCLRDataModule as for CSV input.
 
 Coordinate convention: Pyrodigal uses Prodigal's 1-based, end-inclusive ``begin`` / ``end``.
@@ -48,12 +48,12 @@ def pyrodigal_genes_to_dataframe(
 
     Args:
         genes: ``pyrodigal.Genes`` from ``GeneFinder.find_genes(...)``.
-        sequence_id: Contig / record name (used in ``gene_id``).
+        sequence_id: Contig / record name (used in ``hit_id``).
         include_stop_in_translation: If False (default), omit stop codon as ``*``
             for ESM compatibility.
 
     Returns:
-        DataFrame with columns ``gene_id``, ``start``, ``end``, ``sequence``.
+        DataFrame with columns ``hit_id``, ``start``, ``end``, ``sequence``.
     """
     _require_pyrodigal()
 
@@ -80,14 +80,14 @@ def pyrodigal_genes_to_dataframe(
 
         rows.append(
             {
-                "gene_id": f"{sequence_id}_{i}",
+                "hit_id": f"{sequence_id}_{i}",
                 "start": start,
                 "end": end,
                 "sequence": sequence,
             }
         )
 
-    return pd.DataFrame(rows, columns=["gene_id", "start", "end", "sequence"])
+    return pd.DataFrame(rows, columns=["hit_id", "start", "end", "sequence"])
 
 
 def pyrodigal_annotation_dict_to_dataframe(
@@ -98,7 +98,7 @@ def pyrodigal_annotation_dict_to_dataframe(
     """
     Concatenate tables from a ``{sequence_name: pyrodigal.Genes}`` mapping.
 
-    ``gene_id`` values are prefixed with ``sequence_id`` so IDs are unique
+    ``hit_id`` values are prefixed with ``sequence_id`` so IDs are unique
     across a multifasta / multi-replicon run.
 
     Args:
@@ -106,7 +106,7 @@ def pyrodigal_annotation_dict_to_dataframe(
         include_stop_in_translation: Passed to :func:`pyrodigal_genes_to_dataframe`.
 
     Returns:
-        Single DataFrame with columns ``gene_id``, ``start``, ``end``, ``sequence``.
+        Single DataFrame with columns ``hit_id``, ``start``, ``end``, ``sequence``.
     """
     parts: List[pd.DataFrame] = []
     for seq_id in sorted(dic_genes.keys()):
@@ -118,5 +118,5 @@ def pyrodigal_annotation_dict_to_dataframe(
         if len(df) > 0:
             parts.append(df)
     if not parts:
-        return pd.DataFrame(columns=["gene_id", "start", "end", "sequence"])
+        return pd.DataFrame(columns=["hit_id", "start", "end", "sequence"])
     return pd.concat(parts, ignore_index=True)

@@ -122,6 +122,9 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='Run only GeneCLR-DefenseFinder and not DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
 @click.option('--prot-table-positions', 'prot_table_positions', default=None,
               help='Specify the path to the table containing ID, start, end, sequences corresponding to the input file, if input file is protein fasta file')
+@click.option('--batch-size', 'batch_size', default=10,
+              help='Batch size to ESMDF and GeneCLR_DF, default is 10. If you have small GPU, decrease this value, or increase it if you have large GPU.')
+
 @click.option('--index-dir', 'index_dir', required=False, help='Specify a directory to write the index files required by macsyfinder when the input file is in a read-only folder')
 @click.option('--skip-model-version-check', is_flag=True, default=False,
               help='Skip model version check')
@@ -129,7 +132,7 @@ def update(models_dir=None, force_reinstall: bool = False):
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool,
         adf: bool, adf_only: bool,
         esmdf: bool, esmdf_only: bool, esm_model: str,
-        geneclrdf: bool, geneclrdf_only: bool, prot_table_positions: str,
+        geneclrdf: bool, geneclrdf_only: bool, prot_table_positions: str, batch_size: int,
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None, skip_model_version_check: bool = False):
     """
@@ -249,7 +252,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                        esmdf, esmdf_only, esm_model,
                        geneclrdf, geneclrdf_only, genes_df,
                        tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
-                       base_outfile)
+                       base_outfile, batch_size)
 
     logger.info("Post-treatment of the data")
     defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
