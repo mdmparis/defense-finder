@@ -23,8 +23,8 @@ def export_defense_finder_genes(defense_finder_genes, outdir, filename):
         outdf = esmdf.merge(genclrdf2, suffixes=("_ESMDF", "_GeneCLRDF"), on="hit_id")
         with open(os.path.join(outdir, filename+'_ESM_GeneCLR_DF.tsv'), "w") as outdfout:
             outdf.to_csv(outdfout, sep="\t", index=False)
-        #os.remove(esm_file_output)
-        #os.remove(genclr_file_output)
+        os.remove(esm_file_output)
+        os.remove(genclr_file_output)
 
     else:
         if GCLR_done:
