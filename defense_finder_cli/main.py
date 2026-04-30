@@ -149,7 +149,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
        
     filename = click.format_filename(file)
     # Prepare output folder
-
+             
     logger.info(f"Received file {filename}")
 
     default_outdir = os.getcwd()
@@ -167,6 +167,8 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     if os.path.exists(tmp_dir):
         logger.warning(f"Temporary directory {tmp_dir} already exists. Overwriting it.")
         shutil.rmtree(tmp_dir)
+    
+    genes_df = None
 
     os.makedirs(tmp_dir)
     input_file_is_DNA = False
@@ -248,9 +250,9 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                        geneclrdf, geneclrdf_only, genes_df,
                        tmp_dir, models_dir, no_cut_ga, loglevel, index_dir, models_main_ver,
                        base_outfile)
-    if not esmdf_only:
-        logger.info("Post-treatment of the data")
-        defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
+
+    logger.info("Post-treatment of the data")
+    defense_finder_posttreat.run(tmp_dir, outdir, os.path.splitext(os.path.basename(filename))[0])
 
     if not preserve_raw:
         shutil.rmtree(tmp_dir)

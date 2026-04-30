@@ -42,7 +42,7 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
             sname = seq.name.decode()
             # allseq[-1].append(sseq)
             # allseqname[-1].append(sname)
-            current_batch.append(sseq)
+            current_batch.append(sseq[:2048])
             current_batch_name.append(sname)
             seq.clear()
             
@@ -59,7 +59,10 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
                 #sm_def = torch.softmax(logits, 1).T[1]
                 tmp_df = pd.concat([pd.Series(current_batch_name, name="hit_id"),
                                     pd.DataFrame(logits, columns=["logit_NonDef", "logit_Def"])], axis=1)
-                df_res = pd.concat([df_res, tmp_df])
+                if len(df_res):
+                    df_res = pd.concat([df_res, tmp_df])
+                else:
+                    df_res = tmp_df
                 logger.debug(f"df_res dimension : {df_res.shape}")
                 #df_res.set_index("protID").to_csv("res_esm.tsv", sep="\t", mode="a", header=False)
                 # reinit batch
