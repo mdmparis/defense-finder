@@ -193,8 +193,8 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                     dic_genes[sname] = orf_finder.find_genes(sseq)
                 seq.clear()
             if (geneclrdf == True) or (geneclrdf_only == True):
-                from defense_finder.GeneCLR_DF import geneclr_helper as gch
-                genes_df = gch.pyrodigal_annotation_dict_to_dataframe(dic_genes)
+                from defense_finder.GeneCLR_DF.geneclr.prodigal_io import pyrodigal_annotation_dict_to_dataframe
+                genes_df: DataFrame = pyrodigal_annotation_dict_to_dataframe(dic_genes)
 
             protein_file_name = os.path.join(outdir, f"{os.path.splitext(os.path.basename(filename))[0]}.prt")
 
