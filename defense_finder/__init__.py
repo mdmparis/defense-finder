@@ -179,8 +179,8 @@ def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size)
 
     if genes_df is None:
         logger.error("GeneCLR needs a nucleotide fasta file as input.")
-        sys.exit(1)
-        
+        return None
+                
     with catch_warnings(action="ignore"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
