@@ -165,7 +165,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     logger.debug(f"outdir : {outdir}")
 
     if os.path.exists(outdir):
-        logger.warning(f"Out directory {outdir} already exists. Existing DefenseFinder output will be overwritten")
+        logger.warning(f"Out directory {outdir} already exists. Existing DefenseFinder output might be overwritten")
     os.makedirs(outdir, exist_ok=True)
 
     tmp_dir = os.path.join(outdir, 'defense-finder-tmp')
@@ -232,7 +232,10 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                         logger.warning(f"Be careful, this is not the latest version of the model, last version = {last_version_df}")
                         logger.warning(">>> Run `defense-finder update` to be up to date")
                     else:
-                        logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")
+                        if not geneclrdf_only and not esmdf_only:
+                            logger.info(f"Awesome, you are using the last version of the defense-finder-models : {last_version_df}")
+                        else:
+                            logger.warning("You're running defensefinder in prediction only mode, use at your own risk")
 
     if len(versions_models) != 2:
         logger.error(f"Uncomplete defense-finder models, we found only {' '.join([vm[0] for vm in versions_models])}. Cas and defense-finder models are required")
@@ -242,11 +245,11 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
     logger.info(f"Running DefenseFinder version {__version__}")
     nl = '\n                                '
     tab = "\t"
+    if not geneclrdf_only and not esmdf_only:
+        logger.info(f"""Using the following models:
 
-    logger.info(f"""Using the following models:
-
-                                {nl.join([f"{path+tab+version}" for path, version in versions_models])}
-""")
+                                    {nl.join([f"{path+tab+version}" for path, version in versions_models])}
+    """)
 
     base_outfile = os.path.join(outdir, os.path.splitext(os.path.basename(filename))[0])
     defense_finder.run(protein_file_name, dbtype, workers, coverage,

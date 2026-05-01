@@ -168,7 +168,7 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size):
     )
 
 
-def run_geneCLR(genes_df, loglevel, base_outfile, batch_size):
+def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size):
 
     import torch
     from .GeneCLR_DF import geneclr_helper as gch
@@ -176,6 +176,11 @@ def run_geneCLR(genes_df, loglevel, base_outfile, batch_size):
     from huggingface_hub import hf_hub_download
 
     logger = colorlog.getLogger("Defense_Finder")
+
+    if genes_df is None:
+        logger.error("GeneCLR needs a nucleotide fasta file as input.")
+        sys.exit(1)
+        
     with catch_warnings(action="ignore"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
@@ -241,14 +246,9 @@ def run(
     dbtype,
     workers,
     coverage,
-    adf,
-    adf_only,
-    esmdf,
-    esmdf_only,
-    esm_model,
-    geneclrdf,
-    geneclrdf_only,
-    genes_df,
+    adf, adf_only,
+    esmdf, esmdf_only, esm_model,
+    geneclrdf, geneclrdf_only, genes_df,
     tmp_dir,
     models_dir,
     nocut_ga,
@@ -380,4 +380,4 @@ def run(
         run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size)
 
     if (geneclrdf is True) or (geneclrdf_only is True):
-        run_geneCLR(genes_df, loglevel, base_outfile, batch_size)
+        run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size)
