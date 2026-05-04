@@ -43,7 +43,12 @@ setup(name='mdmparis-defense-finder',
                           ESMDF=["peft", "lightning", "torch", "transformers", "huggingface_hub", "einops"]
                          ),
       packages=[
+           
           'defense_finder',
+          'defense_finder.ESM_DF',
+          'defense_finder.GeneCLR_DF',
+          'defense_finder.GeneCLR_DF.geneclr',
+          'defense_finder.GeneCLR_DF.geneclr.components',
           'defense_finder_cli',
           'defense_finder_updater',
           'defense_finder_posttreat',
@@ -53,7 +58,7 @@ setup(name='mdmparis-defense-finder',
         defense-finder=defense_finder_cli.main:cli
       ''',
       package_data={  
-        "defense_finder": ["*.json", "ESM_DF/tokenizer/ESM2_tokenizer/*json", "ESM_DF/tokenizer/ESM2_tokenizer/vocab.txt"]  # Pattern: <package> -> <relative paths> ,
+        "defense_finder": ["*.json", "ESM_DF/tokenizer/ESM2_tokenizer/*json", "ESM_DF/tokenizer/ESM2_tokenizer/vocab.txt", "GeneCLR_DF/finetuning_config_minimal.yaml"]  # Pattern: <package> -> <relative paths> ,
          
     }, 
       )
