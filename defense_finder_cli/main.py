@@ -3,6 +3,7 @@ import shutil
 import click
 import defense_finder
 import defense_finder_posttreat
+
 from pyhmmer.easel import SequenceFile, TextSequence, Alphabet
 import pyrodigal
 import sys
@@ -195,7 +196,7 @@ def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, pres
                     dic_genes[sname] = orf_finder.find_genes(sseq)
                 seq.clear()
             if (geneclrdf == True) or (geneclrdf_only == True):
-                from defense_finder.GeneCLR_DF.geneclr.prodigal_io import pyrodigal_annotation_dict_to_dataframe
+                from defense_finder import pyrodigal_annotation_dict_to_dataframe
                 genes_df: DataFrame = pyrodigal_annotation_dict_to_dataframe(dic_genes)
 
             protein_file_name = os.path.join(outdir, f"{os.path.splitext(os.path.basename(filename))[0]}.prt")

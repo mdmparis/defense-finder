@@ -22,7 +22,7 @@ setup(name='mdmparis-defense-finder',
       long_description=read_md('README.md'),
       long_description_content_type="text/markdown",
       author="Jean Cury",
-      author_email="jean.cury@normalesup.org",
+      author_email="jean.cury@pasteur.fr",
       url="https://github.com/mdmparis/defense-finder",
       license="GPLv3",
       classifiers=[
@@ -46,10 +46,14 @@ setup(name='mdmparis-defense-finder',
           'defense_finder',
           'defense_finder_cli',
           'defense_finder_updater',
-          'defense_finder_posttreat'
+          'defense_finder_posttreat',
       ],
       entry_points='''
         [console_scripts]
         defense-finder=defense_finder_cli.main:cli
-      '''
+      ''',
+      package_data={  
+        "defense_finder": ["*.json", "ESM_DF/tokenizer/ESM2_tokenizer/*json", "ESM_DF/tokenizer/ESM2_tokenizer/vocab.txt"]  # Pattern: <package> -> <relative paths> ,
+         
+    }, 
       )

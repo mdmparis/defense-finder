@@ -38,7 +38,7 @@ def _require_pyrodigal():
 
 
 def pyrodigal_genes_to_dataframe(
-    genes: Any,
+    genes,
     sequence_id: str,
     *,
     include_stop_in_translation: bool = False,

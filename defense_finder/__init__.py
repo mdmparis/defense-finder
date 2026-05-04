@@ -7,6 +7,8 @@ from warnings import simplefilter, catch_warnings
 from pyhmmer.easel import SequenceFile, TextSequence
 import pandas as pd
 import sys
+from typing import Any, Dict, List, TYPE_CHECKING
+
 
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 simplefilter(action="ignore", category=FutureWarning)
@@ -15,9 +17,7 @@ simplefilter(action="ignore", category=FutureWarning)
 df_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def seq_parser_inference_esm(
-    protein_file_name, model, model_name, device, logger, tokenizer, batch_size
-):
+def seq_parser_inference_esm(protein_file_name, model, model_name, device, logger, tokenizer, batch_size):
     """
     parse protein fasta file, and run model in inference on it.
     """
@@ -166,6 +166,90 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size):
     df_res.to_csv(
         f"{base_outfile}_ESMDF.tsv", sep="\t", index=False, float_format="%.5f"
     )
+
+
+def pyrodigal_genes_to_dataframe(
+    genes: Any,
+    sequence_id: str,
+    *,
+    include_stop_in_translation: bool = False,
+) -> pd.DataFrame:
+    """
+    Build a GeneCLR-compatible gene table from one Pyrodigal ``Genes`` object.
+
+    Args:
+        genes: ``pyrodigal.Genes`` from ``GeneFinder.find_genes(...)``.
+        sequence_id: Contig / record name (used in ``hit_id``).
+        include_stop_in_translation: If False (default), omit stop codon as ``*``
+            for ESM compatibility.
+
+    Returns:
+        DataFrame with columns ``hit_id``, ``start``, ``end``, ``sequence``.
+    """
+
+    rows: List[dict] = []
+    gene_list = list(genes)
+    gene_list.sort(key=lambda g: (g.begin, g.end))
+
+    for i, gene in enumerate(gene_list, start=1):
+        try:
+            seq = gene.translate(include_stop=include_stop_in_translation)
+        except Exception:
+            continue
+        if not seq or not str(seq).strip():
+            continue
+        sequence = str(seq).strip()
+        if sequence.endswith("*"):
+            sequence = sequence.rstrip("*")
+
+        b, e = int(gene.begin), int(gene.end)
+        if gene.strand == -1:
+            start, end = e, b
+        else:
+            start, end = b, e
+
+        rows.append(
+            {
+                "hit_id": f"{sequence_id}_{i}",
+                "start": start,
+                "end": end,
+                "sequence": sequence,
+            }
+        )
+
+    return pd.DataFrame(rows, columns=["hit_id", "start", "end", "sequence"])
+
+
+def pyrodigal_annotation_dict_to_dataframe(
+    dic_genes: Dict[str, Any],
+    *,
+    include_stop_in_translation: bool = False,
+) -> pd.DataFrame:
+    """
+    Concatenate tables from a ``{sequence_name: pyrodigal.Genes}`` mapping.
+
+    ``hit_id`` values are prefixed with ``sequence_id`` so IDs are unique
+    across a multifasta / multi-replicon run.
+
+    Args:
+        dic_genes: Mapping from sequence/contig name to ``pyrodigal.Genes``.
+        include_stop_in_translation: Passed to :func:`pyrodigal_genes_to_dataframe`.
+
+    Returns:
+        Single DataFrame with columns ``hit_id``, ``start``, ``end``, ``sequence``.
+    """
+    parts: List[pd.DataFrame] = []
+    for seq_id in sorted(dic_genes.keys()):
+        df = pyrodigal_genes_to_dataframe(
+            dic_genes[seq_id],
+            seq_id,
+            include_stop_in_translation=include_stop_in_translation,
+        )
+        if len(df) > 0:
+            parts.append(df)
+    if not parts:
+        return pd.DataFrame(columns=["hit_id", "start", "end", "sequence"])
+    return pd.concat(parts, ignore_index=True)
 
 
 def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size):
