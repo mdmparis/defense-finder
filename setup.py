@@ -1,6 +1,7 @@
 from setuptools import setup
 from setuptools.command.install import install
 
+
 def read_md(f):
     import codecs
     with codecs.open(f, 'r', encoding='utf8') as f:
@@ -11,40 +12,53 @@ def read_md(f):
 def read_req(req: str):
     return [i for i in [l.strip() for l in open(req).read().split('\n')] if i]
 
+
 exec(open('defense_finder_cli/_version.py').read())
 
+
 setup(name='mdmparis-defense-finder',
-        version=__version__, # from 'defense_finder_cli/_version.py'
-        description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
-        long_description=read_md('README.md'),
-        long_description_content_type="text/markdown",
-        author="Jean Cury",
-        author_email="jean.cury@normalesup.org",
-        url="https://github.com/mdmparis/defense-finder",
-        license="GPLv3",
-        classifiers=[
-            'Development Status :: 4 - Beta',
-            'Environment :: Console',
-            'Operating System :: POSIX',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.10',
-            'Programming Language :: Python :: 3.11',
-            'Programming Language :: Python :: 3.12',
-            'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-            'Intended Audience :: Science/Research',
-            'Topic :: Scientific/Engineering :: Bio-Informatics'
-            ],
-        python_requires='>=3.10',
-        install_requires=read_req('requirements.txt'),
-        extras_require=dict(dev=read_req('requirements-dev.txt')),
-        packages=[
-            'defense_finder',
-            'defense_finder_cli',
-            'defense_finder_updater',
-            'defense_finder_posttreat'
-        ],
-        entry_points='''
-          [console_scripts]
-          defense-finder=defense_finder_cli.main:cli
-        '''
+      version=__version__, # from 'defense_finder_cli/_version.py'
+      description="Defense Finder: allow for a systematic search of all known anti-phage systems.",
+      long_description=read_md('README.md'),
+      long_description_content_type="text/markdown",
+      author="Jean Cury",
+      author_email="jean.cury@pasteur.fr",
+      url="https://github.com/mdmparis/defense-finder",
+      license="GPLv3",
+      classifiers=[
+          'Development Status :: 4 - Beta',
+          'Environment :: Console',
+          'Operating System :: POSIX',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.10',
+          'Programming Language :: Python :: 3.11',
+          'Programming Language :: Python :: 3.12',
+          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Intended Audience :: Science/Research',
+          'Topic :: Scientific/Engineering :: Bio-Informatics'
+          ],
+      python_requires='>=3.10',
+      install_requires=read_req('requirements.txt'),
+      extras_require=dict(dev=read_req('requirements-dev.txt'),
+                          ESMDF=["peft", "lightning", "torch", "transformers", "huggingface_hub", "einops"]
+                         ),
+      packages=[
+           
+          'defense_finder',
+          'defense_finder.ESM_DF',
+          'defense_finder.GeneCLR_DF',
+          'defense_finder.GeneCLR_DF.geneclr',
+          'defense_finder.GeneCLR_DF.geneclr.components',
+          'defense_finder_cli',
+          'defense_finder_updater',
+          'defense_finder_posttreat',
+      ],
+      entry_points='''
+        [console_scripts]
+        defense-finder=defense_finder_cli.main:cli
+      ''',
+      package_data={  
+        "defense_finder": ["*.json", "ESM_DF/tokenizer/ESM2_tokenizer/*json", "ESM_DF/tokenizer/ESM2_tokenizer/vocab.txt", "GeneCLR_DF/finetuning_config_minimal.yaml"]  # Pattern: <package> -> <relative paths> ,
+         
+    }, 
       )

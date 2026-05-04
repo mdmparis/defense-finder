@@ -1,0 +1,64 @@
+# Full-scale GeneCLR Fine-tuning Configuration
+# This config is for production training using the complete datasets
+
+# Model Configuration (must match pre-trained GeneCLR)
+model:
+  hidden_dim: 480  # ESM35M hidden dimension
+  projection_dim: 64  # Projection head dimension
+  num_classes: 1   # Binary classification (BCEWithLogitsLoss)
+
+# Context Track Configuration (must match pre-trained model)
+context_track:
+  num_layers: 12              # Number of transformer layers
+  num_heads: 8                # Number of attention heads (not 12!)
+  intermediate_size: 1920     # Feed-forward intermediate size (4 * hidden_dim)
+  hidden_dropout: 0.1         # Hidden layer dropout
+  attention_dropout: 0.1      # Attention dropout
+  layer_norm_eps: 1.0e-12     # Layer norm epsilon
+  gradient_checkpointing: true # Enable for memory savings
+  emb_layer_norm_before: true # Pre-norm for embeddings
+  
+  # Double Stranded Attention configuration
+  attention_type: "ds"        # Use Double Stranded attention
+  dsattn_bias_input_dim: 6    # Number of distance features (d1-d6)
+  dsattn_bias_hidden_size: 32 # Hidden size for bias SwiGLU
+  dsattn_bias_noise_std: 1.0  # Noise std for bias SwiGLU
+  distance_transformation: "asinh"  # Apply asinh transformation
+  distance_scale_factor: 0.03     # Scale factor applied before transformation
+
+
+# Optimizer Configuration
+optimizer:
+  lr: 1e-3        # Conservative learning rate for fine-tuning
+  weight_decay: 0.01
+     
+# Training Configuration
+training:
+  max_epochs: 5
+  devices: 1
+  accelerator: "auto"
+  strategy: "auto"
+  precision: "16-mixed"    # Mixed precision for memory efficiency
+  
+  # Gradient and optimization settings
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  
+  # Validation and logging
+  val_check_interval: 0.1  # Validate every 10% of epoch (more frequent monitoring)
+  log_every_n_steps: 10
+  
+  # Early stopping configuration
+  early_stopping_patience: 5   # Reduced patience for fine-tuning
+  early_stopping_monitor: "val_macro_ap"  # Metric to monitor
+  early_stopping_mode: "max"   # We want val_macro_ap to increase
+  early_stopping_min_delta: 0.  # Minimum change to qualify as improvement
+  
+  # Output and experiment naming
+  output_dir: "/pasteur/zeus/projets/p01/MDM/Projects/GeneCLR/runs/finetune_geneclr"
+  experiment_name: "full_dataset_v1"
+  
+  # Reproducibility
+  seed: 42
+  deterministic: false  # Set to true for full reproducibility (slower)
+  benchmark: true       # Optimize for consistent input sizes

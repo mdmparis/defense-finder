@@ -11,3 +11,5 @@ lib
 lib64
 share
 *.idx
+slurm-27576065.out
+*.out
