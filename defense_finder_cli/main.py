@@ -94,7 +94,7 @@ def update(models_dir=None, force_reinstall: bool = False):
 @click.option('-o', '--out-dir', 'outdir',
               help='The target directory where to store the results. Defaults to the current directory.')
 @click.option('-w', '--workers', 'workers', default=0,
-              help='The workers count. By default all cores will be used (w=0).')
+              help='The workers count for macsyfinder only. By default all cores will be used (w=0).')
 @click.option('-c', '--coverage', 'coverage', default=0.4,
               help='Minimal percentage of coverage for each profiles. By default set to 0.4')
 @click.option('--db-type', 'dbtype', default='ordered_replicon',

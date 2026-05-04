@@ -35,7 +35,7 @@ DefenseFinder is available as a [webservice](https://defensefinder.mdmlab.fr/).
 ### Install dependency
 
 DefenseFinder has one program dependency:
-the Hmmer program, version 3.1 or greater (http://hmmer.org/).
+the Hmmer program, version 3.4 or greater (http://hmmer.org/).
 The hmmsearch program should be installed (e.g., in the PATH) to use MacSyFinder.
 DefenseFinder also relies on Python library dependencies:
 
@@ -52,19 +52,10 @@ DefenseFinder is installable through pip.
 Before starting, if you can, it is recommended to install DefenseFinder in a virtualenv (such as condas).
 
 ```sh
-conda create –name defensefinder
+conda create –name defensefinder python=3.12 pip hmmer -c bioconda # install also hmmer in the environment
 conda activate defensefinder
 pip install mdmparis-defense-finder
 ```
-
-However, you can also install DefenseFinder using only pip.
-
-```sh
-pip install mdmparis-defense-finder
-```
-
-At this stage, if you have an issue, this could be due to a problem with your pip installer.
-Check the following [webpage](https://stackoverflow.com/questions/49748063/pip-install-fails-for-every-package-could-not-find-a-version-that-satisfies/49748494#49748494) for details on how to solve it
 
 After installing DefenseFinder, you need to retrieve the DefenseFinder models.
 To retrieve it run:
@@ -75,35 +66,6 @@ defense-finder update
 
 **Conda/Mamba** installation is not linked to this repo and is publish by other than us, so there might be some delays between a release here on pip and on conda.
 ***We recommand to install with pip*** when possible. 
-
-### [Beta version] Installing DefenseFinder to make prediction with DefenseFinder_ESM models. 
-
-Following our paper (Mordret, Hervé, et al. 2025), we release the possibility to predict whether a given protein is likely defensive or not, based on ESM_DF, using ESM35M or ESM650M models.
-
-Currently, this can only be installed using the github repo, and will be not installed by default, see below:
-
-```bash
-git clone git@github.com:mdmparis/defense-finder.git
-cd defense-finder
-git checkout jcury/dev3 # developement branch, won't be necessary later
-mamba create --name defensefinder_esm python=3.12 pip hmmer -c bioconda
-mamba activate defensefinder_esm
-pip install '.[ESMDF]' # install the normal package with the ESMDF extension.
-```
-
-The following options are now available (see below for other commands):
-
-```bash
-   -e, --esmdf                   Also run ESM-DefenseFinder to predict
-                                 potentially new defense genes [use at your own
-                                 risk].
-   -E, --esmdf-only              Run only ESM-DefenseFinder to predict
-                                 potentially new defense genes, and not
-                                 DefenseFinder [use at your own risk]
-   --esm-model TEXT              Specify which ESM model use, between ESM with
-                                 35M or 650M parameters. Possible values :
-                                 [35M], 650M
-```
 
 
 ### Updating DefenseFinder models
@@ -275,6 +237,70 @@ Options:
   --skip-model-version-check    Skip model version check
   -h, --help                    Show this message and exit.
 ```
+
+
+## Installing DefenseFinder to make prediction with ESM_DF and geneCLR_DF models. 
+
+Following our paper ([Mordret, Hervé, et al. 2026](https://www.science.org/doi/10.1126/science.adv8275)), we release the possibility to predict whether a given protein is likely defensive or not, based on ESM_DF, using ESM35M or ESM650M models, or using GeneCLR_DF model.
+
+GeneCLR can only run on nucleotide fasta genome so far. 
+
+To use this model, defensefinder need to be install with specific requirements see below:
+
+```bash
+# Optional, if package not release on pip yet, or to work from source
+git clone git@github.com:mdmparis/defense-finder.git
+cd defense-finder
+git checkout jcury/dev3 # developement branch, won't be necessary later
+
+# Optional, if you already created an environment for DefenseFinder, you can reuse it.
+mamba create --name defensefinder_esm python=3.12 pip hmmer -c bioconda
+mamba activate defensefinder_esm
+
+# How to install :
+pip install 'mdmparis-defense-finder[ESMDF]' # install the normal package with the ESMDF extension.
+```
+
+The following options are now available:
+
+```bash
+   -e, --esmdf                   Also run ESM-DefenseFinder to predict
+                                 potentially new defense genes [use at your own
+                                 risk].
+   -E, --esmdf-only              Run only ESM-DefenseFinder to predict
+                                 potentially new defense genes, and not
+                                 DefenseFinder [use at your own risk]
+   --esm-model TEXT              Specify which ESM model use, between ESM with
+                                 35M or 650M parameters. Possible values :
+                                 [35M], 650M
+   -g, --geneclrdf               Also run GeneCLR-DefenseFinder to predict
+                                 potentially new defense genes [use at your own
+                                 risk].
+   -G, --geneclrdf-only          Run only GeneCLR-DefenseFinder and not
+                                 DefenseFinder to predict potentially new
+                                 defense genes, and not DefenseFinder [use at
+                                 your own risk]
+   --batch-size INTEGER          Batch size to ESMDF and GeneCLR_DF, default is
+                                 10. If you have small GPU, decrease this
+                                 value, or increase it if you have large GPU.
+
+```
+
+It creates a table in the output folder, with the following header : 
+- hit_id: protein ID
+- logit_Def_ESMDF: score for ESM_DF (with the model you used, 35M per default)
+- above_F1_thresh_ESMDF: whether the score on the protein is above the F1 threshold defined in the paper
+- above_FDR_1p_thresh_ESMDF: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
+- above_FDR_0.1p_thresh_ESMDF: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
+- logit_Def_GeneCLRDF: score for the protein with GeneCLR_DF
+- above_F1_thresh_GeneCLRDF: whether the score on the protein is above the F1 threshold defined in the paper
+- above_FDR_1p_thresh_GeneCLRDF: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
+- above_FDR_0.1p_thresh_GeneCLRDF: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
+- gene_name: if this gene is annotated by defenseFinder, name of the gene (subset of the "_defense_finder_genes.tsv" output file)
+- sys_id: if this gene is annotated by defenseFinder, name of the system
+- replicon: if this gene is annotated by defenseFinder, name of the replicon
+
+
 
 ## Development
 

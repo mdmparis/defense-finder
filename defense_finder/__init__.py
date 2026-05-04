@@ -33,7 +33,7 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
         i = 1
         nbatch = 0
         device_info = (
-            f"{torch.get_num_threads()} cpus"
+            "cpus"
             if device.type == "cpu"
             else torch.cuda.get_device_name()
         )
@@ -263,6 +263,8 @@ def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size,
 
     logger = colorlog.getLogger("Defense_Finder")
 
+    thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
+
     if genes_df is None:
         logger.error("GeneCLR needs a nucleotide fasta file as input.")
         return None
@@ -272,7 +274,7 @@ def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size,
     thresh_fdr = pd.read_json(os.path.join(df_dir, "config.json")).to_dict()
 
     device_info = (
-        f"{torch.get_num_threads()} cpus"
+        "cpus"
         if device.type == "cpu"
         else torch.cuda.get_device_name()
     )
