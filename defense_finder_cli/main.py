@@ -115,16 +115,20 @@ def update(models_dir=None, force_reinstall: bool = False):
               help='Run ESM-DefenseFinder and not DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
 @click.option('--esm-model', 'esm_model', default="35M",
               help='Specify which ESM model use, between ESM with 35M or 650M parameters. Possible values : [35M], 650M')
-@click.option('--log-level', 'loglevel', default="INFO",
-              help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
 @click.option('-g','--geneclrdf', 'geneclrdf', is_flag=True, default=False,
               help='Also run GeneCLR-DefenseFinder to predict potentially new defense genes [use at your own risk].')
 @click.option("-G",'--geneclrdf-only', 'geneclrdf_only', is_flag=True, default=False,
               help='Run only GeneCLR-DefenseFinder and not DefenseFinder to predict potentially new defense genes, and not DefenseFinder [use at your own risk]')
-@click.option('--prot-table-positions', 'prot_table_positions', default=None,
-              help='Specify the path to the table containing ID, start, end, sequences corresponding to the input file, if input file is protein fasta file')
+
+#@click.option('--prot-table-positions', 'prot_table_positions', default=None,
+#              help='Specify the path to the table containing ID, start, end, sequences corresponding to the input file, if input file is protein fasta file')
+
 @click.option('--batch-size', 'batch_size', default=10,
               help='Batch size to ESMDF and GeneCLR_DF, default is 10. If you have small GPU, decrease this value, or increase it if you have large GPU.')
+@click.option('--log-level', 'loglevel', default="INFO",
+              help='set the logging level among DEBUG, [INFO], WARNING, ERROR, CRITICAL')
+
+
 # @click.option("--force-cpu", 'force_cpu', is_flag=True, default=False,
 #               help='Force running ESM and geneCLR model on CPU instead of GPU')
 

@@ -38,7 +38,7 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
             else torch.cuda.get_device_name()
         )
         logger.info(
-            f"Predicting with {model_name} on {protein_file_name}, running on {device_info}"
+            f"Predicting with {model_name} on {protein_file_name}, running on {device_info}, with batch size of {batch_size}"
         )
         while sf.readinto(seq):
             sseq = seq.sequence
@@ -107,12 +107,14 @@ def seq_parser_inference_esm(protein_file_name, model, model_name, device, logge
     return df_res
 
 
-def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size):
+def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size, workers):
     """
     run esm model on protein fasta file.
     """
     import torch
     from transformers import AutoTokenizer
+    from transformers import logging as transformers_logging
+    transformers_logging.set_verbosity_error()
     from .ESM_DF.model import EsmForSequenceClassificationLightning
     from huggingface_hub import hf_hub_download
 
@@ -156,11 +158,11 @@ def run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size):
 
     logger.info(f"ESM-DF prediction finished. {len(df_res)} proteins predicted")
 
-    df_res["prob_def_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
-    df_res["prob_def_FDR_1p"] = (
+    df_res["above_F1_thresh"] = df_res.logit_Def >= thresh_fdr["F1"]["ESMDF"][esm_model]
+    df_res["above_FDR_1p_thresh"] = (
         df_res.logit_Def >= thresh_fdr["FDR_99"]["ESMDF"][esm_model]
     )
-    df_res["prob_def_FDR_0.1p"] = (
+    df_res["above_FDR_0.1p_thresh"] = (
         df_res.logit_Def >= thresh_fdr["FDR_999"]["ESMDF"][esm_model]
     )
     df_res.to_csv(
@@ -252,7 +254,7 @@ def pyrodigal_annotation_dict_to_dataframe(
     return pd.concat(parts, ignore_index=True)
 
 
-def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size):
+def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size, workers):
 
     import torch
     from .GeneCLR_DF import geneclr_helper as gch
@@ -275,7 +277,7 @@ def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size)
         else torch.cuda.get_device_name()
     )
     logger.info(
-        f"Predicting with GeneCLR_DF on {os.path.basename(base_outfile)}, running on {device_info}"
+        f"Predicting with GeneCLR_DF on {os.path.basename(base_outfile)}, running on {device_info}, with batch size of {batch_size}"
     )
 
     checkpoint_path = hf_hub_download(
@@ -315,11 +317,11 @@ def run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size)
         "csv",
     )
 
-    # logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
+    logger.info(f"GeneCLR-DF prediction finished. {len(df_res)} proteins predicted")
 
-    df_res["prob_def_F1"] = df_res.logit_Def >= thresh_fdr["F1"]["GENECLRDF"]
-    df_res["prob_def_FDR_1p"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["GENECLRDF"]
-    df_res["prob_def_FDR_0.1p"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["GENECLRDF"]
+    df_res["above_F1_thresh"] = df_res.logit_Def >= thresh_fdr["F1"]["GENECLRDF"]
+    df_res["above_FDR_1p_thresh"] = df_res.logit_Def >= thresh_fdr["FDR_99"]["GENECLRDF"]
+    df_res["above_FDR_0.1p_thresh"] = df_res.logit_Def >= thresh_fdr["FDR_999"]["GENECLRDF"]
     df_res.to_csv(
         f"{base_outfile}_GeneCLR_DF.tsv", sep="\t", index=False, float_format="%.5f"
     )
@@ -461,7 +463,7 @@ def run(
 
     if (esmdf is True) or (esmdf_only is True):
 
-        run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size)
+        run_esm(protein_file_name, esm_model, loglevel, base_outfile, batch_size, workers)
 
     if (geneclrdf is True) or (geneclrdf_only is True):
-        run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size)
+        run_geneCLR(protein_file_name, genes_df, loglevel, base_outfile, batch_size, workers)

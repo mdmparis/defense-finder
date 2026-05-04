@@ -75,7 +75,11 @@ def run_classifier_inference_cli(
     output_path: str,
     output_format: str,
 ) -> bool:
-    """Classifier path: load model, run windows, aggregate logits, write table. Returns False if no logits."""
+
+    """
+    Classifier path: load model, run windows, aggregate logits, write table. Returns False if no logits.
+    """
+
     clf_model = load_geneclr_classification_for_inference(
         checkpoint_path, finetuning_config_path, device=device
     )

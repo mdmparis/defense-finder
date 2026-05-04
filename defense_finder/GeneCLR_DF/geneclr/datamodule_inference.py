@@ -11,6 +11,9 @@ import torch
 from typing import Optional, List, Dict, Any, Union
 from transformers import AutoModel, AutoTokenizer
 
+from transformers import logging as transformers_logging
+transformers_logging.set_verbosity_error()
+
 # Gene structure: dict with keys: sequence, start, end, strand (optional)
 # - sequence: raw protein sequence (required for on-the-fly embedding)
 # - start, end: genomic coordinates (start > end implies reverse strand)
