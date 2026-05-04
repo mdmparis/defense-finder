@@ -139,7 +139,9 @@ def update(models_dir=None, force_reinstall: bool = False):
 def run(file: str, outdir: str, dbtype: str, workers: int, coverage: float, preserve_raw: bool,
         adf: bool, adf_only: bool,
         esmdf: bool, esmdf_only: bool, esm_model: str,
-        geneclrdf: bool, geneclrdf_only: bool, prot_table_positions: str, batch_size: int,
+        geneclrdf: bool, geneclrdf_only: bool, 
+        #prot_table_positions: str,
+         batch_size: int,
         no_cut_ga: bool, models_dir: str = None, loglevel : str = "INFO",
         index_dir: str = None, skip_model_version_check: bool = False):
     """
