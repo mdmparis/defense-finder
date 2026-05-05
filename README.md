@@ -135,9 +135,12 @@ All the files are described below.
 - `subtype` : Subtype of the anti-phage system found (such as RM_type_I, CAS_Class1-Subtype-I-E)
 - `sys_beg` : Protein where the system begins (name found in the input file)
 - `sys_end` : Protein where the system ends (name found in the input file)
-- `protein_in_syst` : List of all protein(s) present in this system (name found in the input file)
+- `protein_in_syst` : List of all protein(s) present in this system (name found in the input file, sorted alphabetically)
 - `genes_count` : Number of genes found in the system
-- `name_of_profiles_in_sys`:  List of the protein profiles that hit the protein of the system (name from the HMM).
+- `name_of_profiles_in_sys`:  List of the protein profiles that hit the protein of the system (name from the HMM, sorted alphabetically).
+
+> [!WARNING]  
+> Since `protein_in_syst` and `name_of_profiles_in_sys` are sorted alphabetically, they do not match necessarily. Refers to the `defense_finder_genes.tsv` table to get the correspondence. 
 
 `defense_finder_genes.tsv` : In this file, each line corresponds to a gene found in a system.
 For each gene, there is several information such as the replicon, the position, the system..
