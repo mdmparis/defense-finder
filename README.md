@@ -8,7 +8,13 @@ If you are using DefenseFinder please cite
 - "Systematic and quantitative view of the antiviral arsenal of prokaryotes" [Nature Communication](https://www.nature.com/articles/s41467-022-30269-9.pdf), 2022, _Tesson F., Hervé A. , Mordret E., Touchon M., d’Humières C., Cury J., Bernheim A._
 - "MacSyFinder v2: Improved modelling and search engine to identify molecular systems in genomes." [Peer Community Journal, Volume 3 (2023), article no. e28](https://peercommunityjournal.org/articles/10.24072/pcjournal.250/).
   _Néron, Bertrand; Denise, Rémi; Coluzzi, Charles; Touchon, Marie; Rocha, Eduardo P.C.; Abby, Sophie S._
-- "CRISPRCasFinder, an update of CRISRFinder, includes a portable version, enhanced performance and integrates search for Cas proteins." Nucleic Acids Research 2018 Couvin D. et al. 
+- "CRISPRCasFinder, an update of CRISRFinder, includes a portable version, enhanced performance and integrates search for Cas proteins." Nucleic Acids Research 2018 Couvin D. et al.
+
+If you use ESM_DF or GeneCLR_DF, please cite:
+
+- "Protein and genomic language models uncover the unexplored diversity of bacterial immunity." [Science, 392(6793), eadv8275](https://doi.org/10.1126/science.adv8275), 2026, _Mordret, E., Hervé, A., Tesson, F., Vaysset, H., Clabby, T., Loubat, A.,  Shomar, H., Planel, R., Lavenir, R., Cury, J., & Bernheim, A._ 
+
+  
 
 ## DefenseFinder Models
 
@@ -35,16 +41,8 @@ DefenseFinder is available as a [webservice](https://defensefinder.mdmlab.fr/).
 ### Install dependency
 
 DefenseFinder has one program dependency:
-the Hmmer program, version 3.4 or greater (http://hmmer.org/).
-The hmmsearch program should be installed (e.g., in the PATH) to use MacSyFinder.
-DefenseFinder also relies on Python library dependencies:
-
-- macsyfinder
-- colorlog
-- pyyaml
-- packaging
-- networkx
-- These dependencies will be automatically retrieved and installed when using pip for installation (see below).
+the Hmmer program, version 3.4 or greater (http://hmmer.org/), should be installed independantly of defensefinder.
+Below, it is shown how to install it while creating an environment. 
 
 ### Install DefenseFinder
 
@@ -57,8 +55,8 @@ conda activate defensefinder
 pip install mdmparis-defense-finder
 ```
 
-After installing DefenseFinder, you need to retrieve the DefenseFinder models.
-To retrieve it run:
+After installing DefenseFinder, you need to retrieve or update the DefenseFinder models.
+To do so, run:
 
 ```sh
 defense-finder update
@@ -287,18 +285,18 @@ The following options are now available:
 ```
 
 It creates a table in the output folder, with the following header : 
-- hit_id: protein ID
-- logit_Def_ESMDF: score for ESM_DF (with the model you used, 35M per default)
-- above_F1_thresh_ESMDF: whether the score on the protein is above the F1 threshold defined in the paper
-- above_FDR_1p_thresh_ESMDF: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
-- above_FDR_0.1p_thresh_ESMDF: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
-- logit_Def_GeneCLRDF: score for the protein with GeneCLR_DF
-- above_F1_thresh_GeneCLRDF: whether the score on the protein is above the F1 threshold defined in the paper
-- above_FDR_1p_thresh_GeneCLRDF: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
-- above_FDR_0.1p_thresh_GeneCLRDF: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
-- gene_name: if this gene is annotated by defenseFinder, name of the gene (subset of the "_defense_finder_genes.tsv" output file)
-- sys_id: if this gene is annotated by defenseFinder, name of the system
-- replicon: if this gene is annotated by defenseFinder, name of the replicon
+- `hit_id`: protein ID
+- `logit_Def_ESMDF`: score for ESM_DF (with the model you used, 35M per default)
+- `above_F1_thresh_ESMDF`: whether the score on the protein is above the F1 threshold defined in the paper
+- `above_FDR_1p_thresh_ESMDF`: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
+- `above_FDR_0.1p_thresh_ESMDF`: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
+- `logit_Def_GeneCLRDF`: score for the protein with GeneCLR_DF
+- `above_F1_thresh_GeneCLRDF`: whether the score on the protein is above the F1 threshold defined in the paper
+- `above_FDR_1p_thresh_GeneCLRDF`: whether the score on the protein is above the False Discovery rate 1% threshold defined in the paper
+- `above_FDR_0.1p_thresh_GeneCLRDF`: whether the score on the protein is above the False Discovery rate 0.1% threshold defined in the paper
+- `gene_name`: if this gene is annotated by defenseFinder, name of the gene (subset of the "_defense_finder_genes.tsv" output file)
+- `sys_id`: if this gene is annotated by defenseFinder, name of the system
+- `replicon`: if this gene is annotated by defenseFinder, name of the replicon
 
 
 
