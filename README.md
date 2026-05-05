@@ -50,7 +50,7 @@ DefenseFinder is installable through pip.
 Before starting, if you can, it is recommended to install DefenseFinder in a virtualenv (such as condas).
 
 ```sh
-conda create –name defensefinder python=3.12 pip hmmer -c bioconda # install also hmmer in the environment
+conda create –-name defensefinder python=3.12 pip hmmer -c bioconda # install also hmmer in the environment
 conda activate defensefinder
 pip install mdmparis-defense-finder
 ```
