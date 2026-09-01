@@ -50,7 +50,7 @@ DefenseFinder is installable through pip.
 Before starting, if you can, it is recommended to install DefenseFinder in a virtualenv (such as condas).
 
 ```sh
-conda create –-name defensefinder python=3.12 pip hmmer -c bioconda # install also hmmer in the environment
+conda create --name defensefinder python=3.12 pip hmmer -c bioconda # install also hmmer in the environment
 conda activate defensefinder
 pip install mdmparis-defense-finder
 ```
@@ -186,7 +186,7 @@ XXXXXXX
 To use DefenseFinder with gembase format file on larger dataset of genomes run
 
 ```sh
-defense-finder run –dbtype gembase esco_genomes.faa
+defense-finder run --db-type gembase esco_genomes.faa
 ```
 
 ## defense-finder run options
@@ -246,14 +246,9 @@ Following our paper ([Mordret, Hervé, et al. 2026](https://www.science.org/doi/
 
 GeneCLR can only run on nucleotide fasta genome so far. 
 
-To use this model, defensefinder need to be install with specific requirements see below:
+To use these models, defensefinder need to be installed with specific requirements see below:
 
 ```bash
-# Optional, if package not release on pip yet, or to work from source
-git clone git@github.com:mdmparis/defense-finder.git
-cd defense-finder
-git checkout jcury/dev3 # developement branch, won't be necessary later
-
 # Optional, if you already created an environment for DefenseFinder, you can reuse it.
 mamba create --name defensefinder_esm python=3.12 pip hmmer -c bioconda
 mamba activate defensefinder_esm
@@ -310,7 +305,7 @@ To install defense-finder in development mode (so when you edit a file the chang
 ```bash
 conda create -n defensefinder_dev
 conda activate defensefinder_dev
-pip install -e .
+pip install -e . # or `pip install -e .[ESMDF]` to install the version with ESM and geneCLR models
 defense-finder update
 ```
 
@@ -332,4 +327,4 @@ done
 ```
 
 ---
-For questions: you can contact aude.bernheim@pasteur.fr, ftesson@pasteur.fr, or jcury@pasteur.fr
+For questions: you can contact jcury@pasteur.fr, arthur.loubat@pasteur.fr or aude.bernheim@pasteur.fr
